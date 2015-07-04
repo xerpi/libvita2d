@@ -43,7 +43,7 @@ int main()
 			}
 		}
 
-		vita2d_draw_texture(tex, 64, 64);
+		vita2d_draw_texture_scale(tex, 64, 64, 2.0f, 0.5f);
 
 
 		vita2d_end_drawing();
@@ -51,8 +51,8 @@ int main()
 
 	}
 
-	vita2d_free_texture(tex);
 	vita2d_fini();
+	vita2d_free_texture(tex);
 
 	sceKernelExitProcess(0);
 	return 0;
