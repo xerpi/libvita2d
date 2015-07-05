@@ -1,4 +1,6 @@
-﻿float4 main() : COLOR
+float4 main(
+	uniform float4 uClearColor
+	) : COLOR
 {
-	return 0.f;
+	return uClearColor;
 }

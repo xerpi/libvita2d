@@ -9,7 +9,6 @@
 extern "C" {
 #endif
 
-
 #define RGBA8(r,g,b,a) ((((a)&0xFF)<<24) | (((b)&0xFF)<<16) | (((g)&0xFF)<<8) | (((r)&0xFF)<<0))
 
 typedef struct vita2d_clear_vertex {
@@ -46,6 +45,8 @@ void vita2d_swap_buffers();
 
 void vita2d_start_drawing();
 void vita2d_end_drawing();
+
+void vita2d_set_clear_color(unsigned int color);
 
 void *vita2d_pool_malloc(unsigned int size);
 void *vita2d_pool_memalign(unsigned int size, unsigned int alignment);

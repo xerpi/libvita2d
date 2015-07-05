@@ -48,6 +48,7 @@ static const SceGxmProgram *const textureVertexProgramGxp   = &texture_v_gxp_sta
 static const SceGxmProgram *const textureFragmentProgramGxp = &texture_f_gxp_start;
 
 static int vita2d_initialized = 0;
+static float clear_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
 
 static SceUID vdmRingBufferUid;
 static SceUID vertexRingBufferUid;
@@ -94,6 +95,7 @@ SceGxmVertexProgram *colorVertexProgram = NULL;
 SceGxmFragmentProgram *colorFragmentProgram = NULL;
 SceGxmVertexProgram *textureVertexProgram = NULL;
 SceGxmFragmentProgram *textureFragmentProgram = NULL;
+const SceGxmProgramParameter *clearClearColorParam = NULL;
 const SceGxmProgramParameter *colorWvpParam = NULL;
 const SceGxmProgramParameter *textureWvpParam = NULL;
 
@@ -522,6 +524,9 @@ int vita2d_init()
 	DEBUG("texture sceGxmShaderPatcherCreateFragmentProgram(): 0x%08X\n", err);
 
 	// find vertex uniforms by name and cache parameter information
+	clearClearColorParam = sceGxmProgramFindParameterByName(clearFragmentProgramGxp, "uClearColor");
+	DEBUG("clearClearColorParam sceGxmProgramFindParameterByName(): %p\n", clearClearColorParam);
+
 	colorWvpParam = sceGxmProgramFindParameterByName(colorVertexProgramGxp, "wvp");
 	DEBUG("color wvp sceGxmProgramFindParameterByName(): %p\n", colorWvpParam);
 
@@ -618,6 +623,11 @@ void vita2d_clear_screen()
 	sceGxmSetVertexProgram(context, clearVertexProgram);
 	sceGxmSetFragmentProgram(context, clearFragmentProgram);
 
+	// set the clear color
+	void *color_buffer;
+	sceGxmReserveFragmentDefaultUniformBuffer(context, &color_buffer);
+	sceGxmSetUniformDataF(color_buffer, clearClearColorParam, 0, 4, clear_color);
+
 	// draw the clear triangle
 	sceGxmSetVertexStream(context, 0, clearVertices);
 	sceGxmDraw(context, SCE_GXM_PRIMITIVE_TRIANGLES, SCE_GXM_INDEX_FORMAT_U16, clearIndices, 3);
@@ -661,6 +671,13 @@ void vita2d_end_drawing()
 	sceGxmEndScene(context, NULL, NULL);
 }
 
+void vita2d_set_clear_color(unsigned int color)
+{
+	clear_color[0] = ((color >> 8*0) & 0xFF)/255.0f;
+	clear_color[1] = ((color >> 8*1) & 0xFF)/255.0f;
+	clear_color[2] = ((color >> 8*2) & 0xFF)/255.0f;
+	clear_color[3] = ((color >> 8*3) & 0xFF)/255.0f;
+}
 
 void *vita2d_pool_malloc(unsigned int size)
 {
