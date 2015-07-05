@@ -52,6 +52,8 @@ void *vita2d_pool_memalign(unsigned int size, unsigned int alignment);
 unsigned int vita2d_pool_space_free();
 void vita2d_pool_reset();
 
+void vita2d_draw_pixel(float x, float y, unsigned int color);
+void vita2d_draw_line(float x0, float y0, float x1, float y1, unsigned int color);
 void vita2d_draw_rectangle(float x, float y, float w, float h, unsigned int color);
 
 vita2d_texture *vita2d_create_empty_texture(unsigned int w, unsigned int h);

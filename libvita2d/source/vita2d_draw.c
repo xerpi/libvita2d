@@ -10,6 +10,68 @@ extern SceGxmFragmentProgram *textureFragmentProgram;
 extern const SceGxmProgramParameter *colorWvpParam;
 extern const SceGxmProgramParameter *textureWvpParam;
 
+void vita2d_draw_pixel(float x, float y, unsigned int color)
+{
+	vita2d_color_vertex *vertex = (vita2d_color_vertex *)vita2d_pool_memalign(
+		1 * sizeof(vita2d_color_vertex), // 1 vertex
+		sizeof(vita2d_color_vertex));
+
+	uint16_t *index = (uint16_t *)vita2d_pool_memalign(
+		1 * sizeof(uint16_t), // 1 index
+		sizeof(uint16_t));
+
+	vertex->x = x;
+	vertex->y = y;
+	vertex->z = +0.5f;
+	vertex->color = color;
+
+	*index = 0;
+
+	sceGxmSetVertexProgram(context, colorVertexProgram);
+	sceGxmSetFragmentProgram(context, colorFragmentProgram);
+
+	void *vertexDefaultBuffer;
+	sceGxmReserveVertexDefaultUniformBuffer(context, &vertexDefaultBuffer);
+	sceGxmSetUniformDataF(vertexDefaultBuffer, colorWvpParam, 0, 16, ortho_matrix);
+
+	sceGxmSetVertexStream(context, 0, vertex);
+	sceGxmDraw(context, SCE_GXM_PRIMITIVE_POINTS, SCE_GXM_INDEX_FORMAT_U16, index, 1);
+}
+
+void vita2d_draw_line(float x0, float y0, float x1, float y1, unsigned int color)
+{
+	vita2d_color_vertex *vertices = (vita2d_color_vertex *)vita2d_pool_memalign(
+		2 * sizeof(vita2d_color_vertex), // 2 vertices
+		sizeof(vita2d_color_vertex));
+
+	uint16_t *indices = (uint16_t *)vita2d_pool_memalign(
+		2 * sizeof(uint16_t), // 2 indices
+		sizeof(uint16_t));
+
+	vertices[0].x = x0;
+	vertices[0].y = y0;
+	vertices[0].z = +0.5f;
+	vertices[0].color = color;
+
+	vertices[1].x = x1;
+	vertices[1].y = y1;
+	vertices[1].z = +0.5f;
+	vertices[1].color = color;
+
+	indices[0] = 0;
+	indices[1] = 1;
+
+	sceGxmSetVertexProgram(context, colorVertexProgram);
+	sceGxmSetFragmentProgram(context, colorFragmentProgram);
+
+	void *vertexDefaultBuffer;
+	sceGxmReserveVertexDefaultUniformBuffer(context, &vertexDefaultBuffer);
+	sceGxmSetUniformDataF(vertexDefaultBuffer, colorWvpParam, 0, 16, ortho_matrix);
+
+	sceGxmSetVertexStream(context, 0, vertices);
+	sceGxmDraw(context, SCE_GXM_PRIMITIVE_TRIANGLE_STRIP, SCE_GXM_INDEX_FORMAT_U16, indices, 2);
+}
+
 void vita2d_draw_rectangle(float x, float y, float w, float h, unsigned int color)
 {
 	vita2d_color_vertex *vertices = (vita2d_color_vertex *)vita2d_pool_memalign(
@@ -54,5 +116,4 @@ void vita2d_draw_rectangle(float x, float y, float w, float h, unsigned int colo
 
 	sceGxmSetVertexStream(context, 0, vertices);
 	sceGxmDraw(context, SCE_GXM_PRIMITIVE_TRIANGLE_STRIP, SCE_GXM_INDEX_FORMAT_U16, indices, 4);
-
 }
