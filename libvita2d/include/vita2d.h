@@ -5,6 +5,11 @@
 #include <psp2/types.h>
 #include <psp2/kernel/memorymgr.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 #define RGBA8(r,g,b,a) ((((a)&0xFF)<<24) | (((b)&0xFF)<<16) | (((g)&0xFF)<<8) | (((r)&0xFF)<<0))
 
 typedef struct vita2d_clear_vertex {
@@ -57,5 +62,8 @@ void *vita2d_texture_get_datap(const vita2d_texture *texture);
 void vita2d_draw_texture(const vita2d_texture *texture, float x, float y);
 void vita2d_draw_texture_scale(const vita2d_texture *texture, float x, float y, float x_scale, float y_scale);
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif
