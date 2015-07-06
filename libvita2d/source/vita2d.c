@@ -138,6 +138,7 @@ void display_callback(const void *callback_data)
 int vita2d_init()
 {
 	int err;
+	unsigned int i, x, y;
 	UNUSED(err);
 
 	if (vita2d_initialized) {
@@ -216,7 +217,7 @@ int vita2d_init()
 	DEBUG("sceGxmCreateRenderTarget(): 0x%08X\n", err);
 
 	// allocate memory and sync objects for display buffers
-	for (unsigned int i = 0; i < DISPLAY_BUFFER_COUNT; ++i) {
+	for (i = 0; i < DISPLAY_BUFFER_COUNT; i++) {
 		// allocate memory for display
 		displayBufferData[i] = gpu_alloc(
 			SCE_KERNEL_MEMBLOCK_TYPE_USER_CDRAM_RW,
@@ -226,9 +227,9 @@ int vita2d_init()
 			&displayBufferUid[i]);
 
 		// memset the buffer to black
-		for (unsigned int y = 0; y < DISPLAY_HEIGHT; ++y) {
+		for (y = 0; y < DISPLAY_HEIGHT; y++) {
 			unsigned int *row = (unsigned int *)displayBufferData[i] + y*DISPLAY_STRIDE_IN_PIXELS;
-			for (unsigned int x = 0; x < DISPLAY_WIDTH; ++x) {
+			for (x = 0; x < DISPLAY_WIDTH; x++) {
 				row[x] = 0xff000000;
 			}
 		}
@@ -553,6 +554,8 @@ int vita2d_init()
 
 int vita2d_fini()
 {
+	unsigned int i;
+
 	if (!vita2d_initialized) {
 		DEBUG("libvita2d is not initialized!\n");
 		return 1;
@@ -576,7 +579,7 @@ int vita2d_fini()
 
 	// clean up display queue
 	gpu_free(depthBufferUid);
-	for (unsigned int i = 0; i < DISPLAY_BUFFER_COUNT; ++i) {
+	for (i = 0; i < DISPLAY_BUFFER_COUNT; i++) {
 		// clear the buffer then deallocate
 		memset(displayBufferData[i], 0, DISPLAY_HEIGHT*DISPLAY_STRIDE_IN_PIXELS*4);
 		gpu_free(displayBufferUid[i]);

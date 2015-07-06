@@ -63,6 +63,8 @@ unsigned int vita2d_texture_get_width(const vita2d_texture *texture);
 unsigned int vita2d_texture_get_height(const vita2d_texture *texture);
 void *vita2d_texture_get_datap(const vita2d_texture *texture);
 void vita2d_draw_texture(const vita2d_texture *texture, float x, float y);
+void vita2d_draw_texture_rotate(const vita2d_texture *texture, float x, float y, float rad);
+void vita2d_draw_texture_rotate_hotspot(const vita2d_texture *texture, float x, float y, float rad, float center_x, float center_y);
 void vita2d_draw_texture_scale(const vita2d_texture *texture, float x, float y, float x_scale, float y_scale);
 
 #ifdef __cplusplus

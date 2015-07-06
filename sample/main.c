@@ -26,6 +26,8 @@ int main()
 	SceCtrlData pad;
 	memset(&pad, 0, sizeof(pad));
 
+	float rad = 0.0f;
+
 	while (1) {
 
 		sceCtrlPeekBufferPositive(0, &pad, 1);
@@ -44,8 +46,9 @@ int main()
 			}
 		}
 
-		vita2d_draw_texture_scale(tex, 64, 64, 2.0f, 0.5f);
+		vita2d_draw_texture_rotate_hotspot(tex, 940/2, 544/2, rad, 0.0f, 0.0f);
 
+		rad += 0.1f;
 
 		vita2d_end_drawing();
 		vita2d_swap_buffers();
