@@ -66,6 +66,7 @@ void vita2d_draw_texture(const vita2d_texture *texture, float x, float y);
 void vita2d_draw_texture_rotate(const vita2d_texture *texture, float x, float y, float rad);
 void vita2d_draw_texture_rotate_hotspot(const vita2d_texture *texture, float x, float y, float rad, float center_x, float center_y);
 void vita2d_draw_texture_scale(const vita2d_texture *texture, float x, float y, float x_scale, float y_scale);
+void vita2d_draw_texture_part(const vita2d_texture *texture, float x, float y, float tex_x, float tex_y, float tex_w, float tex_h);
 
 #ifdef __cplusplus
 }
