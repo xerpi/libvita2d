@@ -48,6 +48,8 @@ static const SceGxmProgram *const textureVertexProgramGxp   = &texture_v_gxp_sta
 static const SceGxmProgram *const textureFragmentProgramGxp = &texture_f_gxp_start;
 
 static int vita2d_initialized = 0;
+static float clear_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+static int vblank_wait = 1;
 
 static SceUID vdmRingBufferUid;
 static SceUID vertexRingBufferUid;
@@ -94,6 +96,7 @@ SceGxmVertexProgram *colorVertexProgram = NULL;
 SceGxmFragmentProgram *colorFragmentProgram = NULL;
 SceGxmVertexProgram *textureVertexProgram = NULL;
 SceGxmFragmentProgram *textureFragmentProgram = NULL;
+const SceGxmProgramParameter *clearClearColorParam = NULL;
 const SceGxmProgramParameter *colorWvpParam = NULL;
 const SceGxmProgramParameter *textureWvpParam = NULL;
 
@@ -115,7 +118,7 @@ static void patcher_host_free(void *user_data, void *mem)
 	free(mem);
 }
 
-void display_callback(const void *callback_data)
+static void display_callback(const void *callback_data)
 {
 	SceDisplayFrameBuf framebuf;
 	const vita2d_display_data *display_data = (const vita2d_display_data *)callback_data;
@@ -129,13 +132,16 @@ void display_callback(const void *callback_data)
 	framebuf.height      = DISPLAY_HEIGHT;
 	sceDisplaySetFrameBuf(&framebuf, PSP2_DISPLAY_SETBUF_NEXTFRAME);
 
-	sceDisplayWaitVblankStart();
+	if (vblank_wait) {
+		sceDisplayWaitVblankStart();
+	}
 }
 
 
 int vita2d_init()
 {
 	int err;
+	unsigned int i, x, y;
 	UNUSED(err);
 
 	if (vita2d_initialized) {
@@ -214,7 +220,7 @@ int vita2d_init()
 	DEBUG("sceGxmCreateRenderTarget(): 0x%08X\n", err);
 
 	// allocate memory and sync objects for display buffers
-	for (unsigned int i = 0; i < DISPLAY_BUFFER_COUNT; ++i) {
+	for (i = 0; i < DISPLAY_BUFFER_COUNT; i++) {
 		// allocate memory for display
 		displayBufferData[i] = gpu_alloc(
 			SCE_KERNEL_MEMBLOCK_TYPE_USER_CDRAM_RW,
@@ -224,9 +230,9 @@ int vita2d_init()
 			&displayBufferUid[i]);
 
 		// memset the buffer to black
-		for (unsigned int y = 0; y < DISPLAY_HEIGHT; ++y) {
+		for (y = 0; y < DISPLAY_HEIGHT; y++) {
 			unsigned int *row = (unsigned int *)displayBufferData[i] + y*DISPLAY_STRIDE_IN_PIXELS;
-			for (unsigned int x = 0; x < DISPLAY_WIDTH; ++x) {
+			for (x = 0; x < DISPLAY_WIDTH; x++) {
 				row[x] = 0xff000000;
 			}
 		}
@@ -360,6 +366,16 @@ int vita2d_init()
 	err = sceGxmShaderPatcherRegisterProgram(shaderPatcher, textureFragmentProgramGxp, &textureFragmentProgramId);
 	DEBUG("texture_f sceGxmShaderPatcherRegisterProgram(): 0x%08X\n", err);
 
+	// Fill SceGxmBlendInfo
+	const SceGxmBlendInfo blend_info = {
+		.colorFunc = SCE_GXM_BLEND_FUNC_ADD,
+		.alphaFunc = SCE_GXM_BLEND_FUNC_ADD,
+		.colorSrc  = SCE_GXM_BLEND_FACTOR_SRC_ALPHA,
+		.colorDst  = SCE_GXM_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
+		.alphaSrc  = SCE_GXM_BLEND_FACTOR_ONE,
+		.alphaDst  = SCE_GXM_BLEND_FACTOR_ZERO,
+		.colorMask = SCE_GXM_COLOR_MASK_ALL
+	};
 
 	// get attributes by name to create vertex format bindings
 	const SceGxmProgramParameter *paramClearPositionAttribute = sceGxmProgramFindParameterByName(clearVertexProgramGxp, "aPosition");
@@ -392,7 +408,7 @@ int vita2d_init()
 		clearFragmentProgramId,
 		SCE_GXM_OUTPUT_REGISTER_FORMAT_UCHAR4,
 		MSAA_MODE,
-		NULL,
+		&blend_info,
 		clearVertexProgramGxp,
 		&clearFragmentProgram);
 
@@ -466,7 +482,7 @@ int vita2d_init()
 		colorFragmentProgramId,
 		SCE_GXM_OUTPUT_REGISTER_FORMAT_UCHAR4,
 		MSAA_MODE,
-		NULL,
+		&blend_info,
 		colorVertexProgramGxp,
 		&colorFragmentProgram);
 
@@ -515,13 +531,16 @@ int vita2d_init()
 		textureFragmentProgramId,
 		SCE_GXM_OUTPUT_REGISTER_FORMAT_UCHAR4,
 		MSAA_MODE,
-		NULL,
+		&blend_info,
 		textureVertexProgramGxp,
 		&textureFragmentProgram);
 
 	DEBUG("texture sceGxmShaderPatcherCreateFragmentProgram(): 0x%08X\n", err);
 
 	// find vertex uniforms by name and cache parameter information
+	clearClearColorParam = sceGxmProgramFindParameterByName(clearFragmentProgramGxp, "uClearColor");
+	DEBUG("clearClearColorParam sceGxmProgramFindParameterByName(): %p\n", clearClearColorParam);
+
 	colorWvpParam = sceGxmProgramFindParameterByName(colorVertexProgramGxp, "wvp");
 	DEBUG("color wvp sceGxmProgramFindParameterByName(): %p\n", colorWvpParam);
 
@@ -548,6 +567,8 @@ int vita2d_init()
 
 int vita2d_fini()
 {
+	unsigned int i;
+
 	if (!vita2d_initialized) {
 		DEBUG("libvita2d is not initialized!\n");
 		return 1;
@@ -571,7 +592,7 @@ int vita2d_fini()
 
 	// clean up display queue
 	gpu_free(depthBufferUid);
-	for (unsigned int i = 0; i < DISPLAY_BUFFER_COUNT; ++i) {
+	for (i = 0; i < DISPLAY_BUFFER_COUNT; i++) {
 		// clear the buffer then deallocate
 		memset(displayBufferData[i], 0, DISPLAY_HEIGHT*DISPLAY_STRIDE_IN_PIXELS*4);
 		gpu_free(displayBufferUid[i]);
@@ -618,6 +639,11 @@ void vita2d_clear_screen()
 	sceGxmSetVertexProgram(context, clearVertexProgram);
 	sceGxmSetFragmentProgram(context, clearFragmentProgram);
 
+	// set the clear color
+	void *color_buffer;
+	sceGxmReserveFragmentDefaultUniformBuffer(context, &color_buffer);
+	sceGxmSetUniformDataF(color_buffer, clearClearColorParam, 0, 4, clear_color);
+
 	// draw the clear triangle
 	sceGxmSetVertexStream(context, 0, clearVertices);
 	sceGxmDraw(context, SCE_GXM_PRIMITIVE_TRIANGLES, SCE_GXM_INDEX_FORMAT_U16, clearIndices, 3);
@@ -661,6 +687,18 @@ void vita2d_end_drawing()
 	sceGxmEndScene(context, NULL, NULL);
 }
 
+void vita2d_set_clear_color(unsigned int color)
+{
+	clear_color[0] = ((color >> 8*0) & 0xFF)/255.0f;
+	clear_color[1] = ((color >> 8*1) & 0xFF)/255.0f;
+	clear_color[2] = ((color >> 8*2) & 0xFF)/255.0f;
+	clear_color[3] = ((color >> 8*3) & 0xFF)/255.0f;
+}
+
+void vita2d_set_vblank_wait(int enable)
+{
+	vblank_wait = enable;
+}
 
 void *vita2d_pool_malloc(unsigned int size)
 {

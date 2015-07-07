@@ -1,4 +1,5 @@
 #include "vita2d.h"
+#include <math.h>
 
 /* Shared with other .c */
 extern float ortho_matrix[4*4];
@@ -116,4 +117,57 @@ void vita2d_draw_rectangle(float x, float y, float w, float h, unsigned int colo
 
 	sceGxmSetVertexStream(context, 0, vertices);
 	sceGxmDraw(context, SCE_GXM_PRIMITIVE_TRIANGLE_STRIP, SCE_GXM_INDEX_FORMAT_U16, indices, 4);
+}
+
+void vita2d_draw_fill_circle(float x, float y, float radius, unsigned int color)
+{
+	static const int num_segments = 100;
+
+	vita2d_color_vertex *vertices = (vita2d_color_vertex *)vita2d_pool_memalign(
+		(num_segments + 1) * sizeof(vita2d_color_vertex),
+		sizeof(vita2d_color_vertex));
+
+	uint16_t *indices = (uint16_t *)vita2d_pool_memalign(
+		(num_segments + 2) * sizeof(uint16_t),
+		sizeof(uint16_t));
+
+
+	vertices[0].x = x;
+	vertices[0].y = y;
+	vertices[0].z = +0.5f;
+	vertices[0].color = color;
+	indices[0] = 0;
+
+	float theta = 2 * M_PI / (float)num_segments;
+	float c = cosf(theta);
+	float s = sinf(theta);
+	float t;
+
+	float xx = radius;
+	float yy = 0;
+	int i;
+
+	for (i = 1; i <= num_segments; i++) {
+		vertices[i].x = x + xx;
+		vertices[i].y = y + yy;
+		vertices[i].z = +0.5f;
+		vertices[i].color = color;
+		indices[i] = i;
+
+		t = xx;
+		xx = c * xx - s * yy;
+		yy = s * t + c * yy;
+	}
+
+	indices[num_segments + 1] = 1;
+
+	sceGxmSetVertexProgram(context, colorVertexProgram);
+	sceGxmSetFragmentProgram(context, colorFragmentProgram);
+
+	void *vertexDefaultBuffer;
+	sceGxmReserveVertexDefaultUniformBuffer(context, &vertexDefaultBuffer);
+	sceGxmSetUniformDataF(vertexDefaultBuffer, colorWvpParam, 0, 16, ortho_matrix);
+
+	sceGxmSetVertexStream(context, 0, vertices);
+	sceGxmDraw(context, SCE_GXM_PRIMITIVE_TRIANGLE_FAN, SCE_GXM_INDEX_FORMAT_U16, indices, num_segments + 2);
 }
