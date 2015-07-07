@@ -49,6 +49,7 @@ static const SceGxmProgram *const textureFragmentProgramGxp = &texture_f_gxp_sta
 
 static int vita2d_initialized = 0;
 static float clear_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+static int vblank_wait = 1;
 
 static SceUID vdmRingBufferUid;
 static SceUID vertexRingBufferUid;
@@ -117,7 +118,7 @@ static void patcher_host_free(void *user_data, void *mem)
 	free(mem);
 }
 
-void display_callback(const void *callback_data)
+static void display_callback(const void *callback_data)
 {
 	SceDisplayFrameBuf framebuf;
 	const vita2d_display_data *display_data = (const vita2d_display_data *)callback_data;
@@ -131,7 +132,9 @@ void display_callback(const void *callback_data)
 	framebuf.height      = DISPLAY_HEIGHT;
 	sceDisplaySetFrameBuf(&framebuf, PSP2_DISPLAY_SETBUF_NEXTFRAME);
 
-	sceDisplayWaitVblankStart();
+	if (vblank_wait) {
+		sceDisplayWaitVblankStart();
+	}
 }
 
 
@@ -680,6 +683,11 @@ void vita2d_set_clear_color(unsigned int color)
 	clear_color[1] = ((color >> 8*1) & 0xFF)/255.0f;
 	clear_color[2] = ((color >> 8*2) & 0xFF)/255.0f;
 	clear_color[3] = ((color >> 8*3) & 0xFF)/255.0f;
+}
+
+void vita2d_set_vblank_wait(int enable)
+{
+	vblank_wait = enable;
 }
 
 void *vita2d_pool_malloc(unsigned int size)

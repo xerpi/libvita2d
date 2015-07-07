@@ -264,7 +264,7 @@ void vita2d_draw_texture_scale(const vita2d_texture *texture, float x, float y, 
 
 void vita2d_draw_texture_part(const vita2d_texture *texture, float x, float y, float tex_x, float tex_y, float tex_w, float tex_h)
 {
-vita2d_texture_vertex *vertices = (vita2d_texture_vertex *)vita2d_pool_memalign(
+	vita2d_texture_vertex *vertices = (vita2d_texture_vertex *)vita2d_pool_memalign(
 		4 * sizeof(vita2d_texture_vertex), // 4 vertices
 		sizeof(vita2d_texture_vertex));
 
