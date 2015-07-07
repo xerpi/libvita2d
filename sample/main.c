@@ -38,7 +38,9 @@ int main()
 
 		vita2d_draw_rectangle(20, 20, 400, 250, RGBA8(255, 0, 0, 255));
 		vita2d_draw_rectangle(700, 300, 100, 150, RGBA8(0, 0, 255, 255));
+		vita2d_draw_fill_circle(200, 420, 100, RGBA8(0, 255,0 ,255));
 
+		/* Fill the texture with random data */
 		int i, j;
 		for (i = 0; i < 128; i++) {
 			for (j = 0; j < 128; j++) {

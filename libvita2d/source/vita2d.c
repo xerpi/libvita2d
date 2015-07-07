@@ -366,6 +366,16 @@ int vita2d_init()
 	err = sceGxmShaderPatcherRegisterProgram(shaderPatcher, textureFragmentProgramGxp, &textureFragmentProgramId);
 	DEBUG("texture_f sceGxmShaderPatcherRegisterProgram(): 0x%08X\n", err);
 
+	// Fill SceGxmBlendInfo
+	const SceGxmBlendInfo blend_info = {
+		.colorFunc = SCE_GXM_BLEND_FUNC_ADD,
+		.alphaFunc = SCE_GXM_BLEND_FUNC_ADD,
+		.colorSrc  = SCE_GXM_BLEND_FACTOR_SRC_ALPHA,
+		.colorDst  = SCE_GXM_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
+		.alphaSrc  = SCE_GXM_BLEND_FACTOR_ONE,
+		.alphaDst  = SCE_GXM_BLEND_FACTOR_ZERO,
+		.colorMask = SCE_GXM_COLOR_MASK_ALL
+	};
 
 	// get attributes by name to create vertex format bindings
 	const SceGxmProgramParameter *paramClearPositionAttribute = sceGxmProgramFindParameterByName(clearVertexProgramGxp, "aPosition");
@@ -398,7 +408,7 @@ int vita2d_init()
 		clearFragmentProgramId,
 		SCE_GXM_OUTPUT_REGISTER_FORMAT_UCHAR4,
 		MSAA_MODE,
-		NULL,
+		&blend_info,
 		clearVertexProgramGxp,
 		&clearFragmentProgram);
 
@@ -472,7 +482,7 @@ int vita2d_init()
 		colorFragmentProgramId,
 		SCE_GXM_OUTPUT_REGISTER_FORMAT_UCHAR4,
 		MSAA_MODE,
-		NULL,
+		&blend_info,
 		colorVertexProgramGxp,
 		&colorFragmentProgram);
 
@@ -521,7 +531,7 @@ int vita2d_init()
 		textureFragmentProgramId,
 		SCE_GXM_OUTPUT_REGISTER_FORMAT_UCHAR4,
 		MSAA_MODE,
-		NULL,
+		&blend_info,
 		textureVertexProgramGxp,
 		&textureFragmentProgram);
 
