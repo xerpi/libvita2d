@@ -60,6 +60,7 @@ void vita2d_draw_rectangle(float x, float y, float w, float h, unsigned int colo
 void vita2d_draw_fill_circle(float x, float y, float radius, unsigned int color);
 
 vita2d_texture *vita2d_create_empty_texture(unsigned int w, unsigned int h);
+vita2d_texture *vita2d_create_empty_texture_format(unsigned int w, unsigned int h, SceGxmTextureFormat format);
 void vita2d_free_texture(vita2d_texture *texture);
 unsigned int vita2d_texture_get_width(const vita2d_texture *texture);
 unsigned int vita2d_texture_get_height(const vita2d_texture *texture);

@@ -15,15 +15,46 @@ extern SceGxmFragmentProgram *textureFragmentProgram;
 extern const SceGxmProgramParameter *colorWvpParam;
 extern const SceGxmProgramParameter *textureWvpParam;
 
+static int tex_format_to_bytespp(SceGxmTextureFormat format)
+{
+	switch (format & 0x9f000000U) {
+	case SCE_GXM_TEXTURE_BASE_FORMAT_U8:
+	case SCE_GXM_TEXTURE_BASE_FORMAT_S8:
+		return 1;
+	case SCE_GXM_TEXTURE_BASE_FORMAT_U4U4U4U4:
+	case SCE_GXM_TEXTURE_BASE_FORMAT_U8U3U3U2:
+	case SCE_GXM_TEXTURE_BASE_FORMAT_U1U5U5U5:
+	case SCE_GXM_TEXTURE_BASE_FORMAT_U5U6U5:
+	case SCE_GXM_TEXTURE_BASE_FORMAT_S5S5U6:
+	case SCE_GXM_TEXTURE_BASE_FORMAT_U8U8:
+	case SCE_GXM_TEXTURE_BASE_FORMAT_S8S8:
+		return 2;
+	case SCE_GXM_TEXTURE_BASE_FORMAT_U8U8U8:
+	case SCE_GXM_TEXTURE_BASE_FORMAT_S8S8S8:
+		return 3;
+	case SCE_GXM_TEXTURE_BASE_FORMAT_U8U8U8U8:
+	case SCE_GXM_TEXTURE_BASE_FORMAT_S8S8S8S8:
+	case SCE_GXM_TEXTURE_BASE_FORMAT_F32:
+	case SCE_GXM_TEXTURE_BASE_FORMAT_U32,
+	case SCE_GXM_TEXTURE_BASE_FORMAT_S32:
+	default:
+		return 4;
+	}
+}
 
 vita2d_texture *vita2d_create_empty_texture(unsigned int w, unsigned int h)
+{
+	return vita2d_create_empty_texture_format(w, h, SCE_GXM_TEXTURE_FORMAT_A8B8G8R8);
+}
+
+vita2d_texture *vita2d_create_empty_texture_format(unsigned int w, unsigned int h, SceGxmTextureFormat format)
 {
 	vita2d_texture *texture = malloc(sizeof(*texture));
 	if (!texture) {
 		return NULL;
 	}
 
-	const int tex_size =  w * h * 4;
+	const int tex_size =  w * h * tex_format_to_bytespp(format);
 
 	/* Allocate a GPU buffer for the texture */
 	void *texture_data = gpu_alloc(
@@ -45,7 +76,7 @@ vita2d_texture *vita2d_create_empty_texture(unsigned int w, unsigned int h)
 	sceGxmTextureInitLinear(
 		&texture->gxm_tex,
 		texture_data,
-		SCE_GXM_TEXTURE_FORMAT_A8B8G8R8,
+		format,
 		w,
 		h,
 		0);
