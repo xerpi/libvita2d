@@ -3,7 +3,7 @@
 
 #include <psp2/gxm.h>
 #include <psp2/types.h>
-#include <psp2/kernel/memorymgr.h>
+#include <psp2/kernel/sysmem.h>
 
 /* Misc utils */
 #define ALIGN(x, a)	(((x) + ((a) - 1)) & ~((a) - 1))

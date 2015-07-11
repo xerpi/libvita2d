@@ -1,4 +1,4 @@
-#include <psp2/kernel/memorymgr.h>
+#include <psp2/kernel/sysmem.h>
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
@@ -35,7 +35,7 @@ static int tex_format_to_bytespp(SceGxmTextureFormat format)
 	case SCE_GXM_TEXTURE_BASE_FORMAT_U8U8U8U8:
 	case SCE_GXM_TEXTURE_BASE_FORMAT_S8S8S8S8:
 	case SCE_GXM_TEXTURE_BASE_FORMAT_F32:
-	case SCE_GXM_TEXTURE_BASE_FORMAT_U32,
+	case SCE_GXM_TEXTURE_BASE_FORMAT_U32:
 	case SCE_GXM_TEXTURE_BASE_FORMAT_S32:
 	default:
 		return 4;

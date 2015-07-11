@@ -3,7 +3,7 @@
 
 #include <psp2/gxm.h>
 #include <psp2/types.h>
-#include <psp2/kernel/memorymgr.h>
+#include <psp2/kernel/sysmem.h>
 
 #ifdef __cplusplus
 extern "C" {
