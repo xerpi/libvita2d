@@ -1,7 +1,7 @@
 #include <psp2/display.h>
 #include <psp2/gxm.h>
 #include <psp2/types.h>
-#include <psp2/kernel/memorymgr.h>
+#include <psp2/kernel/sysmem.h>
 #include <string.h>
 #include <stdlib.h>
 #include "vita2d.h"

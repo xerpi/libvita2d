@@ -1,4 +1,4 @@
-#include <psp2/kernel/memorymgr.h>
+#include <psp2/kernel/sysmem.h>
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
@@ -15,15 +15,46 @@ extern SceGxmFragmentProgram *textureFragmentProgram;
 extern const SceGxmProgramParameter *colorWvpParam;
 extern const SceGxmProgramParameter *textureWvpParam;
 
+static int tex_format_to_bytespp(SceGxmTextureFormat format)
+{
+	switch (format & 0x9f000000U) {
+	case SCE_GXM_TEXTURE_BASE_FORMAT_U8:
+	case SCE_GXM_TEXTURE_BASE_FORMAT_S8:
+		return 1;
+	case SCE_GXM_TEXTURE_BASE_FORMAT_U4U4U4U4:
+	case SCE_GXM_TEXTURE_BASE_FORMAT_U8U3U3U2:
+	case SCE_GXM_TEXTURE_BASE_FORMAT_U1U5U5U5:
+	case SCE_GXM_TEXTURE_BASE_FORMAT_U5U6U5:
+	case SCE_GXM_TEXTURE_BASE_FORMAT_S5S5U6:
+	case SCE_GXM_TEXTURE_BASE_FORMAT_U8U8:
+	case SCE_GXM_TEXTURE_BASE_FORMAT_S8S8:
+		return 2;
+	case SCE_GXM_TEXTURE_BASE_FORMAT_U8U8U8:
+	case SCE_GXM_TEXTURE_BASE_FORMAT_S8S8S8:
+		return 3;
+	case SCE_GXM_TEXTURE_BASE_FORMAT_U8U8U8U8:
+	case SCE_GXM_TEXTURE_BASE_FORMAT_S8S8S8S8:
+	case SCE_GXM_TEXTURE_BASE_FORMAT_F32:
+	case SCE_GXM_TEXTURE_BASE_FORMAT_U32:
+	case SCE_GXM_TEXTURE_BASE_FORMAT_S32:
+	default:
+		return 4;
+	}
+}
 
 vita2d_texture *vita2d_create_empty_texture(unsigned int w, unsigned int h)
+{
+	return vita2d_create_empty_texture_format(w, h, SCE_GXM_TEXTURE_FORMAT_A8B8G8R8);
+}
+
+vita2d_texture *vita2d_create_empty_texture_format(unsigned int w, unsigned int h, SceGxmTextureFormat format)
 {
 	vita2d_texture *texture = malloc(sizeof(*texture));
 	if (!texture) {
 		return NULL;
 	}
 
-	const int tex_size =  w * h * 4;
+	const int tex_size =  w * h * tex_format_to_bytespp(format);
 
 	/* Allocate a GPU buffer for the texture */
 	void *texture_data = gpu_alloc(
@@ -45,7 +76,7 @@ vita2d_texture *vita2d_create_empty_texture(unsigned int w, unsigned int h)
 	sceGxmTextureInitLinear(
 		&texture->gxm_tex,
 		texture_data,
-		SCE_GXM_TEXTURE_FORMAT_A8B8G8R8,
+		format,
 		w,
 		h,
 		0);
@@ -383,6 +414,69 @@ void vita2d_draw_texture_lcd3x(const vita2d_texture *texture, float x, float y, 
 	sceGxmSetUniformDataF(vertexDefaultBuffer, lcd3xWvpParam, 0, 16, ortho_matrix);
 	sceGxmSetUniformDataF(vertexDefaultBuffer, lcd3xTextureSizeParam, 0, 2, texture_size);
 
+	// Set the texture to the TEXUNIT0
+	sceGxmSetFragmentTexture(context, 0, &texture->gxm_tex);
+
+	sceGxmSetVertexStream(context, 0, vertices);
+	sceGxmDraw(context, SCE_GXM_PRIMITIVE_TRIANGLE_STRIP, SCE_GXM_INDEX_FORMAT_U16, indices, 4);
+}
+
+void vita2d_draw_texture_part_scale(const vita2d_texture *texture, float x, float y, float tex_x, float tex_y, float tex_w, float tex_h, float x_scale, float y_scale)
+{
+	vita2d_texture_vertex *vertices = (vita2d_texture_vertex *)vita2d_pool_memalign(
+		4 * sizeof(vita2d_texture_vertex), // 4 vertices
+		sizeof(vita2d_texture_vertex));
+
+	uint16_t *indices = (uint16_t *)vita2d_pool_memalign(
+		4 * sizeof(uint16_t), // 4 indices
+		sizeof(uint16_t));
+
+	const float w = vita2d_texture_get_width(texture);
+	const float h = vita2d_texture_get_height(texture);
+
+	const float u0 = tex_x/w;
+	const float v0 = tex_y/h;
+	const float u1 = (tex_x+tex_w)/w;
+	const float v1 = (tex_y+tex_h)/h;
+
+	tex_w *= x_scale;
+	tex_h *= y_scale;
+
+	vertices[0].x = x;
+	vertices[0].y = y;
+	vertices[0].z = +0.5f;
+	vertices[0].u = u0;
+	vertices[0].v = v0;
+
+	vertices[1].x = x + tex_w;
+	vertices[1].y = y;
+	vertices[1].z = +0.5f;
+	vertices[1].u = u1;
+	vertices[1].v = v0;
+
+	vertices[2].x = x;
+	vertices[2].y = y + tex_h;
+	vertices[2].z = +0.5f;
+	vertices[2].u = u0;
+	vertices[2].v = v1;
+
+	vertices[3].x = x + tex_w;
+	vertices[3].y = y + tex_h;
+	vertices[3].z = +0.5f;
+	vertices[3].u = u1;
+	vertices[3].v = v1;
+
+	indices[0] = 0;
+	indices[1] = 1;
+	indices[2] = 2;
+	indices[3] = 3;
+
+	sceGxmSetVertexProgram(context, textureVertexProgram);
+	sceGxmSetFragmentProgram(context, textureFragmentProgram);
+
+	void *vertexDefaultBuffer;
+	sceGxmReserveVertexDefaultUniformBuffer(context, &vertexDefaultBuffer);
+	sceGxmSetUniformDataF(vertexDefaultBuffer, textureWvpParam, 0, 16, ortho_matrix);
 
 	// Set the texture to the TEXUNIT0
 	sceGxmSetFragmentTexture(context, 0, &texture->gxm_tex);

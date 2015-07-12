@@ -3,7 +3,7 @@
 
 #include <psp2/gxm.h>
 #include <psp2/types.h>
-#include <psp2/kernel/memorymgr.h>
+#include <psp2/kernel/sysmem.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -60,6 +60,7 @@ void vita2d_draw_rectangle(float x, float y, float w, float h, unsigned int colo
 void vita2d_draw_fill_circle(float x, float y, float radius, unsigned int color);
 
 vita2d_texture *vita2d_create_empty_texture(unsigned int w, unsigned int h);
+vita2d_texture *vita2d_create_empty_texture_format(unsigned int w, unsigned int h, SceGxmTextureFormat format);
 void vita2d_free_texture(vita2d_texture *texture);
 unsigned int vita2d_texture_get_width(const vita2d_texture *texture);
 unsigned int vita2d_texture_get_height(const vita2d_texture *texture);
@@ -69,6 +70,7 @@ void vita2d_draw_texture_rotate(const vita2d_texture *texture, float x, float y,
 void vita2d_draw_texture_rotate_hotspot(const vita2d_texture *texture, float x, float y, float rad, float center_x, float center_y);
 void vita2d_draw_texture_scale(const vita2d_texture *texture, float x, float y, float x_scale, float y_scale);
 void vita2d_draw_texture_part(const vita2d_texture *texture, float x, float y, float tex_x, float tex_y, float tex_w, float tex_h);
+void vita2d_draw_texture_part_scale(const vita2d_texture *texture, float x, float y, float tex_x, float tex_y, float tex_w, float tex_h, float x_scale, float y_scale);
 
 
 void vita2d_draw_texture_lcd3x(const vita2d_texture *texture, float x, float y, float x_scale, float y_scale);
