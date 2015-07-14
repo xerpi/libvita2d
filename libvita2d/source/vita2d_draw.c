@@ -84,24 +84,26 @@ void vita2d_draw_line(float x0, float y0, float x1, float y1, unsigned int color
 void vita2d_draw_rectangle(float x, float y, float w, float h, unsigned int color)
 {
 	float start_x = x;
-	
 	if(start_x < 0.0f)
 		start_x = 0.0f;
 	
 	float start_y = y;
-	
 	if(start_y < 0.0f)
 		start_y = 0.0f;
 		
 	float end_x = x + w;
-	
 	if(end_x >= DISPLAY_WIDTH)
 		end_x = DISPLAY_WIDTH-1;
 		
 	float end_y = y + h;
-	
 	if(end_y >= DISPLAY_HEIGHT)
 		end_y = DISPLAY_HEIGHT-1;
+	
+	if((end_x - start_x) == 0 && (end_y - start_y) == 0) {
+		vita2d_draw_pixel(start_x, start_y, color);
+		return;
+	}
+	}
 	
 	vita2d_color_vertex *vertices = (vita2d_color_vertex *)vita2d_pool_memalign(
 		4 * sizeof(vita2d_color_vertex), // 4 vertices
