@@ -354,6 +354,73 @@ void vita2d_draw_texture_part(const vita2d_texture *texture, float x, float y, f
 	sceGxmDraw(context, SCE_GXM_PRIMITIVE_TRIANGLE_STRIP, SCE_GXM_INDEX_FORMAT_U16, indices, 4);
 }
 
+extern SceGxmVertexProgram *lcd3xVertexProgram;
+extern SceGxmFragmentProgram *lcd3xFragmentProgram;
+
+extern const SceGxmProgramParameter *lcd3xWvpParam;
+extern const SceGxmProgramParameter *lcd3xTextureSizeParam;
+
+
+void vita2d_draw_texture_lcd3x(const vita2d_texture *texture, float x, float y, float x_scale, float y_scale)
+{
+
+	vita2d_texture_vertex *vertices = (vita2d_texture_vertex *)vita2d_pool_memalign(
+		4 * sizeof(vita2d_texture_vertex), // 4 vertices
+		sizeof(vita2d_texture_vertex));
+
+	uint16_t *indices = (uint16_t *)vita2d_pool_memalign(
+		4 * sizeof(uint16_t), // 4 indices
+		sizeof(uint16_t));
+
+	float texture_size[2]={vita2d_texture_get_width(texture),vita2d_texture_get_height(texture)};
+
+	const float w = x_scale * vita2d_texture_get_width(texture);
+	const float h = y_scale * vita2d_texture_get_height(texture);
+
+	vertices[0].x = x;
+	vertices[0].y = y;
+	vertices[0].z = +0.5f;
+	vertices[0].u = 0.0f;
+	vertices[0].v = 0.0f;
+
+	vertices[1].x = x + w;
+	vertices[1].y = y;
+	vertices[1].z = +0.5f;
+	vertices[1].u = 1.0f;
+	vertices[1].v = 0.0f;
+
+	vertices[2].x = x;
+	vertices[2].y = y + h;
+	vertices[2].z = +0.5f;
+	vertices[2].u = 0.0f;
+	vertices[2].v = 1.0f;
+
+	vertices[3].x = x + w;
+	vertices[3].y = y + h;
+	vertices[3].z = +0.5f;
+	vertices[3].u = 1.0f;
+	vertices[3].v = 1.0f;
+
+	indices[0] = 0;
+	indices[1] = 1;
+	indices[2] = 2;
+	indices[3] = 3;
+
+	sceGxmSetVertexProgram(context, lcd3xVertexProgram);
+	sceGxmSetFragmentProgram(context, lcd3xFragmentProgram);
+
+	void *vertexDefaultBuffer;
+	sceGxmReserveVertexDefaultUniformBuffer(context, &vertexDefaultBuffer);
+	sceGxmSetUniformDataF(vertexDefaultBuffer, lcd3xWvpParam, 0, 16, ortho_matrix);
+	sceGxmSetUniformDataF(vertexDefaultBuffer, lcd3xTextureSizeParam, 0, 2, texture_size);
+
+	// Set the texture to the TEXUNIT0
+	sceGxmSetFragmentTexture(context, 0, &texture->gxm_tex);
+
+	sceGxmSetVertexStream(context, 0, vertices);
+	sceGxmDraw(context, SCE_GXM_PRIMITIVE_TRIANGLE_STRIP, SCE_GXM_INDEX_FORMAT_U16, indices, 4);
+}
+
 void vita2d_draw_texture_part_scale(const vita2d_texture *texture, float x, float y, float tex_x, float tex_y, float tex_w, float tex_h, float x_scale, float y_scale)
 {
 	vita2d_texture_vertex *vertices = (vita2d_texture_vertex *)vita2d_pool_memalign(

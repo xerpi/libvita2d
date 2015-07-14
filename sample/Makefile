@@ -9,7 +9,7 @@ OBJS   = main.o
 LIBS = -lvita2d -lm -lc_stub -lSceKernel_stub -lSceDisplay_stub -lSceGxm_stub	\
 	-lSceCtrl_stub -lSceTouch_stub
 
-PREFIX  = $(DEVKITARM)/bin/arm-none-eabi
+PREFIX  = arm-none-eabi
 CC      = $(PREFIX)-gcc
 CFLAGS  = -Wall -specs=psp2.specs
 ASFLAGS = $(CFLAGS)

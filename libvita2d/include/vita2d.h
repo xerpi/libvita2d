@@ -73,6 +73,9 @@ void vita2d_draw_texture_scale(const vita2d_texture *texture, float x, float y, 
 void vita2d_draw_texture_part(const vita2d_texture *texture, float x, float y, float tex_x, float tex_y, float tex_w, float tex_h);
 void vita2d_draw_texture_part_scale(const vita2d_texture *texture, float x, float y, float tex_x, float tex_y, float tex_w, float tex_h, float x_scale, float y_scale);
 
+
+void vita2d_draw_texture_lcd3x(const vita2d_texture *texture, float x, float y, float x_scale, float y_scale);
+void vita2d_init_lcd3x();
 #ifdef __cplusplus
 }
 #endif
