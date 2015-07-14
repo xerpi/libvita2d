@@ -103,7 +103,6 @@ void vita2d_draw_rectangle(float x, float y, float w, float h, unsigned int colo
 		vita2d_draw_pixel(start_x, start_y, color);
 		return;
 	}
-	}
 	
 	vita2d_color_vertex *vertices = (vita2d_color_vertex *)vita2d_pool_memalign(
 		4 * sizeof(vita2d_color_vertex), // 4 vertices
