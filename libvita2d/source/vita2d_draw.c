@@ -44,7 +44,7 @@ void vita2d_draw_pixel(float x, float y, unsigned int color)
 
 void vita2d_draw_line(float x0, float y0, float x1, float y1, unsigned int color)
 {
-	if((x1 - x0) == 0 && (y0 - y1) == 0) {
+	if((x1 - x0) == 0 && (y1 - y0) == 0) {
 		vita2d_draw_pixel(x0, y0, x1, y1, color);
 		return;
 	}
