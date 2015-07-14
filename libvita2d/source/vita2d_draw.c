@@ -36,7 +36,18 @@ void vita2d_draw_pixel(float x, float y, unsigned int color)
 	sceGxmSetUniformDataF(vertexDefaultBuffer, colorWvpParam, 0, 16, ortho_matrix);
 
 	sceGxmSetVertexStream(context, 0, vertex);
+
+	sceGxmSetFrontDepthWriteEnable(context,SCE_GXM_DEPTH_WRITE_DISABLED);
+	sceGxmSetFrontPolygonMode(context,SCE_GXM_POLYGON_MODE_POINT);
+	sceGxmSetBackPolygonMode(context, SCE_GXM_POLYGON_MODE_POINT );
+
+	sceGxmSetCullMode(context, SCE_GXM_CULL_NONE);
+
 	sceGxmDraw(context, SCE_GXM_PRIMITIVE_POINTS, SCE_GXM_INDEX_FORMAT_U16, index, 1);
+
+	sceGxmSetFrontDepthWriteEnable(context, SCE_GXM_DEPTH_WRITE_ENABLED);
+	sceGxmSetFrontPolygonMode(context, SCE_GXM_POLYGON_MODE_TRIANGLE_FILL);
+	sceGxmSetBackPolygonMode( context, SCE_GXM_POLYGON_MODE_TRIANGLE_FILL );
 }
 
 void vita2d_draw_line(float x0, float y0, float x1, float y1, unsigned int color)
@@ -70,7 +81,18 @@ void vita2d_draw_line(float x0, float y0, float x1, float y1, unsigned int color
 	sceGxmSetUniformDataF(vertexDefaultBuffer, colorWvpParam, 0, 16, ortho_matrix);
 
 	sceGxmSetVertexStream(context, 0, vertices);
-	sceGxmDraw(context, SCE_GXM_PRIMITIVE_LINES, SCE_GXM_INDEX_FORMAT_U16, indices, 2);
+
+	sceGxmSetFrontDepthWriteEnable(context,SCE_GXM_DEPTH_WRITE_DISABLED);
+	sceGxmSetFrontPolygonMode(context,SCE_GXM_POLYGON_MODE_LINE);
+	sceGxmSetBackPolygonMode(context, SCE_GXM_POLYGON_MODE_LINE );
+
+	sceGxmSetCullMode(context, SCE_GXM_CULL_NONE);
+
+  sceGxmDraw(context, SCE_GXM_PRIMITIVE_LINES, SCE_GXM_INDEX_FORMAT_U16, indices, 2);
+
+	sceGxmSetFrontDepthWriteEnable(context, SCE_GXM_DEPTH_WRITE_ENABLED);
+	sceGxmSetFrontPolygonMode(context, SCE_GXM_POLYGON_MODE_TRIANGLE_FILL);
+	sceGxmSetBackPolygonMode( context, SCE_GXM_POLYGON_MODE_TRIANGLE_FILL );
 }
 
 void vita2d_draw_rectangle(float x, float y, float w, float h, unsigned int color)
