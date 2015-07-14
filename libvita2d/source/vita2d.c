@@ -702,6 +702,11 @@ void vita2d_set_vblank_wait(int enable)
 	vblank_wait = enable;
 }
 
+void *vita2d_get_current_fb()
+{
+	return displayBufferData[frontBufferIndex];
+}
+
 void *vita2d_pool_malloc(unsigned int size)
 {
 	if ((pool_index + size) < pool_size) {

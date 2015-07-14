@@ -48,6 +48,7 @@ void vita2d_end_drawing();
 
 void vita2d_set_clear_color(unsigned int color);
 void vita2d_set_vblank_wait(int enable);
+void *vita2d_get_current_fb();
 
 void *vita2d_pool_malloc(unsigned int size);
 void *vita2d_pool_memalign(unsigned int size, unsigned int alignment);
