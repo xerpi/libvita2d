@@ -24,6 +24,7 @@
 #define DISPLAY_BUFFER_COUNT		3
 #define DISPLAY_MAX_PENDING_SWAPS	2
 #define MSAA_MODE			SCE_GXM_MULTISAMPLE_NONE
+#define DEFAULT_TEMP_POOL_SIZE		(1 * 1024 * 1024)
 
 typedef struct vita2d_display_data {
 	void *address;
@@ -367,7 +368,7 @@ int vita2d_init()
 	DEBUG("texture_f sceGxmShaderPatcherRegisterProgram(): 0x%08X\n", err);
 
 	// Fill SceGxmBlendInfo
-	const SceGxmBlendInfo blend_info = {
+	static const SceGxmBlendInfo blend_info = {
 		.colorFunc = SCE_GXM_BLEND_FUNC_ADD,
 		.alphaFunc = SCE_GXM_BLEND_FUNC_ADD,
 		.colorSrc  = SCE_GXM_BLEND_FACTOR_SRC_ALPHA,
@@ -408,7 +409,7 @@ int vita2d_init()
 		clearFragmentProgramId,
 		SCE_GXM_OUTPUT_REGISTER_FORMAT_UCHAR4,
 		MSAA_MODE,
-		&blend_info,
+		NULL,
 		clearVertexProgramGxp,
 		&clearFragmentProgram);
 
@@ -548,7 +549,7 @@ int vita2d_init()
 	DEBUG("texture wvp sceGxmProgramFindParameterByName(): %p\n", textureWvpParam);
 
 	// Allocate memory for the memory pool
-	pool_size = 8 * 1024 * 1024;
+	pool_size = DEFAULT_TEMP_POOL_SIZE;
 	pool_addr = gpu_alloc(
 		SCE_KERNEL_MEMBLOCK_TYPE_USER_RW_UNCACHE,
 		pool_size,

@@ -8,7 +8,7 @@ SHADERS    = shader/compiled/clear_v_gxp.o shader/compiled/clear_f_gxp.o \
 PREFIX  = $(DEVKITARM)/bin/arm-none-eabi
 CC      = $(PREFIX)-gcc
 AR      = $(PREFIX)-ar
-CFLAGS  = -Wall -specs=psp2.specs -I$(INCLUDES)
+CFLAGS  = -Wall -mfloat-abi=softfp -specs=psp2.specs -I$(INCLUDES)
 ASFLAGS = $(CFLAGS)
 
 all: $(TARGET_LIB)

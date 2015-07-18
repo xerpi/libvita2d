@@ -1,15 +1,6 @@
-#include "vita2d.h"
 #include <math.h>
-
-/* Shared with other .c */
-extern float ortho_matrix[4*4];
-extern SceGxmContext *context;
-extern SceGxmVertexProgram *colorVertexProgram;
-extern SceGxmFragmentProgram *colorFragmentProgram;
-extern SceGxmVertexProgram *textureVertexProgram;
-extern SceGxmFragmentProgram *textureFragmentProgram;
-extern const SceGxmProgramParameter *colorWvpParam;
-extern const SceGxmProgramParameter *textureWvpParam;
+#include "vita2d.h"
+#include "shared.h"
 
 void vita2d_draw_pixel(float x, float y, unsigned int color)
 {
@@ -36,7 +27,9 @@ void vita2d_draw_pixel(float x, float y, unsigned int color)
 	sceGxmSetUniformDataF(vertexDefaultBuffer, colorWvpParam, 0, 16, ortho_matrix);
 
 	sceGxmSetVertexStream(context, 0, vertex);
+	sceGxmSetFrontPolygonMode(context, SCE_GXM_POLYGON_MODE_POINT);
 	sceGxmDraw(context, SCE_GXM_PRIMITIVE_POINTS, SCE_GXM_INDEX_FORMAT_U16, index, 1);
+	sceGxmSetFrontPolygonMode(context, SCE_GXM_POLYGON_MODE_TRIANGLE_FILL);
 }
 
 void vita2d_draw_line(float x0, float y0, float x1, float y1, unsigned int color)
@@ -70,7 +63,9 @@ void vita2d_draw_line(float x0, float y0, float x1, float y1, unsigned int color
 	sceGxmSetUniformDataF(vertexDefaultBuffer, colorWvpParam, 0, 16, ortho_matrix);
 
 	sceGxmSetVertexStream(context, 0, vertices);
+	sceGxmSetFrontPolygonMode(context, SCE_GXM_POLYGON_MODE_LINE);
 	sceGxmDraw(context, SCE_GXM_PRIMITIVE_LINES, SCE_GXM_INDEX_FORMAT_U16, indices, 2);
+	sceGxmSetFrontPolygonMode(context, SCE_GXM_POLYGON_MODE_TRIANGLE_FILL);
 }
 
 void vita2d_draw_rectangle(float x, float y, float w, float h, unsigned int color)
