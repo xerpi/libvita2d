@@ -66,6 +66,8 @@ void vita2d_free_texture(vita2d_texture *texture);
 
 unsigned int vita2d_texture_get_width(const vita2d_texture *texture);
 unsigned int vita2d_texture_get_height(const vita2d_texture *texture);
+unsigned int vita2d_texture_get_stride(const vita2d_texture *texture);
+SceGxmTextureFormat vita2d_texture_get_format(const vita2d_texture *texture);
 void *vita2d_texture_get_datap(const vita2d_texture *texture);
 
 void vita2d_draw_texture(const vita2d_texture *texture, float x, float y);

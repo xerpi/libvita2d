@@ -93,6 +93,17 @@ unsigned int vita2d_texture_get_height(const vita2d_texture *texture)
 	return sceGxmTextureGetHeight(&texture->gxm_tex);
 }
 
+unsigned int vita2d_texture_get_stride(const vita2d_texture *texture)
+{
+	return ((vita2d_texture_get_width(texture) + 7) & ~7)
+		* tex_format_to_bytespp(vita2d_texture_get_format(texture));
+}
+
+SceGxmTextureFormat vita2d_texture_get_format(const vita2d_texture *texture)
+{
+	return sceGxmTextureGetFormat(&texture->gxm_tex);
+}
+
 void *vita2d_texture_get_datap(const vita2d_texture *texture)
 {
 	return sceGxmTextureGetData(&texture->gxm_tex);
