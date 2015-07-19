@@ -7,7 +7,6 @@
 #include <stdlib.h>
 
 #include <psp2/ctrl.h>
-#include <psp2/touch.h>
 #include <psp2/moduleinfo.h>
 #include <psp2/kernel/processmgr.h>
 
@@ -29,7 +28,6 @@ int main()
 	float rad = 0.0f;
 
 	while (1) {
-
 		sceCtrlPeekBufferPositive(0, &pad, 1);
 		if (pad.buttons & PSP2_CTRL_START) break;
 
@@ -48,13 +46,14 @@ int main()
 			}
 		}
 
-		vita2d_draw_texture_rotate_hotspot(tex, 940/2, 544/2, rad, 0.0f, 0.0f);
+		vita2d_draw_texture_rotate(tex, 940/2, 544/2, rad);
 
-		rad += 0.1f;
+		vita2d_draw_line(40, 40, 300, 300, RGBA8(255, 0, 255, 255));
 
 		vita2d_end_drawing();
 		vita2d_swap_buffers();
 
+		rad += 0.1f;
 	}
 
 	vita2d_fini();

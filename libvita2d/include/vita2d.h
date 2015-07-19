@@ -63,9 +63,11 @@ void vita2d_draw_fill_circle(float x, float y, float radius, unsigned int color)
 vita2d_texture *vita2d_create_empty_texture(unsigned int w, unsigned int h);
 vita2d_texture *vita2d_create_empty_texture_format(unsigned int w, unsigned int h, SceGxmTextureFormat format);
 void vita2d_free_texture(vita2d_texture *texture);
+
 unsigned int vita2d_texture_get_width(const vita2d_texture *texture);
 unsigned int vita2d_texture_get_height(const vita2d_texture *texture);
 void *vita2d_texture_get_datap(const vita2d_texture *texture);
+
 void vita2d_draw_texture(const vita2d_texture *texture, float x, float y);
 void vita2d_draw_texture_rotate(const vita2d_texture *texture, float x, float y, float rad);
 void vita2d_draw_texture_rotate_hotspot(const vita2d_texture *texture, float x, float y, float rad, float center_x, float center_y);
@@ -73,9 +75,18 @@ void vita2d_draw_texture_scale(const vita2d_texture *texture, float x, float y, 
 void vita2d_draw_texture_part(const vita2d_texture *texture, float x, float y, float tex_x, float tex_y, float tex_w, float tex_h);
 void vita2d_draw_texture_part_scale(const vita2d_texture *texture, float x, float y, float tex_x, float tex_y, float tex_w, float tex_h, float x_scale, float y_scale);
 
+vita2d_texture *vita2d_load_PNG_file(const char *filename);
+vita2d_texture *vita2d_load_PNG_buffer(const void *buffer);
+
+vita2d_texture *vita2d_load_JPEG_file(const char *filename);
+vita2d_texture *vita2d_load_JPEG_buffer(const void *buffer, unsigned long buffer_size);
+
+vita2d_texture *vita2d_load_BMP_file(const char *filename);
+vita2d_texture *vita2d_load_BMP_buffer(const void *buffer);
 
 void vita2d_draw_texture_lcd3x(const vita2d_texture *texture, float x, float y, float x_scale, float y_scale);
 void vita2d_init_lcd3x();
+
 #ifdef __cplusplus
 }
 #endif
