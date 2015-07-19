@@ -71,7 +71,7 @@ static vita2d_texture *_vita2d_load_PNG_generic(const void *io_ptr, png_rw_ptr r
 	png_read_update_info(png_ptr, info_ptr);
 
 	row_ptrs = (png_bytep *)malloc(sizeof(png_bytep) * height);
-	vita2d_texture *texture = vita2d_create_empty_texture_format(width, height, SCE_GXM_TEXTURE_FORMAT_U8U8U8U8_RGBA);
+	vita2d_texture *texture = vita2d_create_empty_texture(width, height);
 	void *texture_data = vita2d_texture_get_datap(texture);
 
 	int stride = vita2d_texture_get_width(texture) * 4;
