@@ -13,21 +13,21 @@ typedef struct {
 	unsigned short	bfReserved1;
 	unsigned short	bfReserved2;
 	unsigned int	bfOffBits;
-}__attribute__((packed)) BITMAPFILEHEADER;
+} __attribute__((packed)) BITMAPFILEHEADER;
 
 typedef struct {
 	unsigned int	biSize;
-	unsigned int	biWidth;
-	unsigned int	biHeight;
+	int		biWidth;
+	int		biHeight;
 	unsigned short	biPlanes;
 	unsigned short	biBitCount;
 	unsigned int	biCompression;
 	unsigned int	biSizeImage;
-	unsigned int	biXPelsPerMeter;
-	unsigned int	biYPelsPerMeter;
+	int		biXPelsPerMeter;
+	int		biYPelsPerMeter;
 	unsigned int	biClrUsed;
 	unsigned int	biClrImportant;
-}__attribute__((packed)) BITMAPINFOHEADER;
+} __attribute__((packed)) BITMAPINFOHEADER;
 
 
 static vita2d_texture *_vita2d_load_BMP_generic(
@@ -37,38 +37,34 @@ static vita2d_texture *_vita2d_load_BMP_generic(
 	void (*seek_fn)(void *user_data, unsigned int offset),
 	void (*read_fn)(void *user_data, void *buffer, unsigned int length))
 {
-	unsigned int row_size = bmp_ih->biWidth * (bmp_ih->biBitCount/8);
-	if (row_size%4 != 0) {
-		row_size += 4-(row_size%4);
+	unsigned int row_stride = bmp_ih->biWidth * (bmp_ih->biBitCount/8);
+	if (row_stride%4 != 0) {
+		row_stride += 4-(row_stride%4);
 	}
 
-	vita2d_texture *texture = vita2d_create_empty_texture_format(
+	vita2d_texture *texture = vita2d_create_empty_texture(
 		bmp_ih->biWidth,
-		bmp_ih->biHeight,
-		SCE_GXM_TEXTURE_FORMAT_U8U8U8U8_RGBA);
+		bmp_ih->biHeight);
 
 	void *texture_data = vita2d_texture_get_datap(texture);
+	unsigned int tex_stride = vita2d_texture_get_stride(texture);
+
+	int i, x, y;
+	void *buffer = malloc(row_stride);
 
 	seek_fn(user_data, bmp_fh->bfOffBits);
 
-	int stride = vita2d_texture_get_width(texture) * 4;
-
-	void *buffer = malloc(row_size);
-	unsigned int *tex_ptr;
-	unsigned int color;
-	int i, x, y;
-
 	for (i = 0; i < bmp_ih->biHeight; i++) {
 
-		read_fn(user_data, buffer, row_size);
+		read_fn(user_data, buffer, row_stride);
 
 		y = bmp_ih->biHeight - 1 - i;
-		tex_ptr = (unsigned int *)(texture_data + y*stride);
+		unsigned int *tex_ptr = (unsigned int *)(texture_data + y*tex_stride);
 
 		for (x = 0; x < bmp_ih->biWidth; x++) {
 
 			if (bmp_ih->biBitCount == 32) {		//ABGR8888
-				color = *(unsigned int *)(buffer + x*4);
+				unsigned int color = *(unsigned int *)(buffer + x*4);
 				*tex_ptr = (color&0xFF)<<24 | ((color>>8)&0xFF)<<16 |
 					((color>>16)&0xFF)<<8 | (color>>24);
 
@@ -78,7 +74,7 @@ static vita2d_texture *_vita2d_load_BMP_generic(
 					(*(address+2)) | (0xFF<<24);
 
 			} else if (bmp_ih->biBitCount == 16) {	//BGR565
-				color = *(unsigned short *)(buffer + x*2);
+				unsigned int color = *(unsigned short *)(buffer + x*2);
 				unsigned char r = (color       & 0x1F)  *((float)255/31);
 				unsigned char g = ((color>>5)  & 0x3F)  *((float)255/63);
 				unsigned char b = ((color>>11) & 0x1F)  *((float)255/31);
@@ -118,7 +114,7 @@ static void _vita2d_read_bmp_buffer_read_fn(void *user_data, void *buffer, unsig
 vita2d_texture *vita2d_load_BMP_file(const char *filename)
 {
 	SceUID fd;
-	if((fd = sceIoOpen(filename, PSP2_O_RDONLY, 0777)) < 0) {
+	if ((fd = sceIoOpen(filename, PSP2_O_RDONLY, 0777)) < 0) {
 		goto exit_error;
 	}
 
@@ -145,7 +141,6 @@ exit_close:
 exit_error:
 	return NULL;
 }
-
 
 vita2d_texture *vita2d_load_BMP_buffer(const void *buffer)
 {
