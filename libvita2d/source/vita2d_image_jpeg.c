@@ -16,17 +16,12 @@ static vita2d_texture *_vita2d_load_JPEG_generic(struct jpeg_decompress_struct *
 		SCE_GXM_TEXTURE_FORMAT_U8U8U8_BGR);
 
 	void *texture_data = vita2d_texture_get_datap(texture);
-
 	unsigned int row_stride = vita2d_texture_get_stride(texture);
-
 	void *row_pointer = texture_data;
 
 	while (jinfo->output_scanline < jinfo->output_height) {
-
-		unsigned char *buffer_array[1];
-		buffer_array[0] = texture_data + (jinfo->output_scanline) * row_stride;
-
-		jpeg_read_scanlines(jinfo, buffer_array, 1);
+		jpeg_read_scanlines(jinfo, (JSAMPARRAY)&row_pointer, 1);
+		row_pointer += row_stride;
 	}
 
 	return texture;
