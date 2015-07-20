@@ -8,50 +8,23 @@
 
 static vita2d_texture *_vita2d_load_JPEG_generic(struct jpeg_decompress_struct *jinfo, struct jpeg_error_mgr *jerr)
 {
-	int row_bytes;
-	switch (jinfo->out_color_space) {
-	case JCS_RGB:
-		row_bytes = jinfo->image_width * 3;
-		break;
-	default:
-		goto exit_error;
-	}
-
-	vita2d_texture *texture = vita2d_create_empty_texture_format(
-		jinfo->image_width,
-		jinfo->image_height,
-		SCE_GXM_TEXTURE_FORMAT_U8U8U8U8_RGBA);
-
-	void *texture_data = vita2d_texture_get_datap(texture);
-
-	JSAMPARRAY buffer = (JSAMPARRAY)malloc(sizeof(JSAMPROW));
-	buffer[0] = (JSAMPROW)malloc(sizeof(JSAMPLE) * row_bytes);
-
-	unsigned int i, color, *tex_ptr;
-	unsigned char *jpeg_ptr;
-	void *row_ptr = texture_data;
 	jpeg_start_decompress(jinfo);
 
-	int stride = vita2d_texture_get_width(texture) * 4;
+	vita2d_texture *texture = vita2d_create_empty_texture_format(
+		jinfo->output_width,
+		jinfo->output_height,
+		SCE_GXM_TEXTURE_FORMAT_U8U8U8_BGR);
+
+	void *texture_data = vita2d_texture_get_datap(texture);
+	unsigned int row_stride = vita2d_texture_get_stride(texture);
+	void *row_pointer = texture_data;
 
 	while (jinfo->output_scanline < jinfo->output_height) {
-		jpeg_read_scanlines(jinfo, buffer, 1);
-		tex_ptr = (row_ptr += stride);
-		for (i = 0, jpeg_ptr = buffer[0]; i < jinfo->output_width; i++) {
-			color = *(jpeg_ptr++);
-			color |= *(jpeg_ptr++)<<8;
-			color |= *(jpeg_ptr++)<<16;
-			*(tex_ptr++) = color | 0xFF000000;
-		}
+		jpeg_read_scanlines(jinfo, (JSAMPARRAY)&row_pointer, 1);
+		row_pointer += row_stride;
 	}
 
-	free(buffer[0]);
-	free(buffer);
-
 	return texture;
-
-exit_error:
-	return NULL;
 }
 
 
