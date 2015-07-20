@@ -731,7 +731,7 @@ void *vita2d_pool_memalign(unsigned int size, unsigned int alignment)
 	return NULL;
 }
 
-unsigned int vita2d_pool_space_free()
+unsigned int vita2d_pool_free_space()
 {
 	return pool_size - pool_index;
 }
