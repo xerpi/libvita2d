@@ -11,6 +11,7 @@ static int tex_format_to_bytespp(SceGxmTextureFormat format)
 	switch (format & 0x9f000000U) {
 	case SCE_GXM_TEXTURE_BASE_FORMAT_U8:
 	case SCE_GXM_TEXTURE_BASE_FORMAT_S8:
+	case SCE_GXM_TEXTURE_BASE_FORMAT_P8:
 		return 1;
 	case SCE_GXM_TEXTURE_BASE_FORMAT_U4U4U4U4:
 	case SCE_GXM_TEXTURE_BASE_FORMAT_U8U3U3U2:
@@ -72,12 +73,38 @@ vita2d_texture *vita2d_create_empty_texture_format(unsigned int w, unsigned int 
 		h,
 		0);
 
+	if ((format & 0x9f000000U) == SCE_GXM_TEXTURE_BASE_FORMAT_P8) {
+
+		const int pal_size = 256 * sizeof(uint32_t);
+
+		void *texture_palette = gpu_alloc(
+			SCE_KERNEL_MEMBLOCK_TYPE_USER_CDRAM_RW,
+			pal_size,
+			SCE_GXM_PALETTE_ALIGNMENT,
+			SCE_GXM_MEMORY_ATTRIB_READ,
+			&texture->palette_UID);
+
+		if (!texture_palette) {
+			vita2d_free_texture(texture);
+			return NULL;
+		}
+
+		memset(texture_palette, 0, pal_size);
+
+		sceGxmTextureSetPalette(&texture->gxm_tex, texture_palette);
+	} else {
+		texture->palette_UID = 0;
+	}
+
 	return texture;
 }
 
 void vita2d_free_texture(vita2d_texture *texture)
 {
 	if (texture) {
+		if (texture->palette_UID) {
+			gpu_free(texture->palette_UID);
+		}
 		gpu_free(texture->data_UID);
 		free(texture);
 	}
@@ -107,6 +134,11 @@ SceGxmTextureFormat vita2d_texture_get_format(const vita2d_texture *texture)
 void *vita2d_texture_get_datap(const vita2d_texture *texture)
 {
 	return sceGxmTextureGetData(&texture->gxm_tex);
+}
+
+void *vita2d_texture_get_palette(const vita2d_texture *texture)
+{
+	return sceGxmTextureGetPalette(&texture->gxm_tex);
 }
 
 void vita2d_draw_texture(const vita2d_texture *texture, float x, float y)

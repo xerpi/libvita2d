@@ -138,8 +138,12 @@ static void display_callback(const void *callback_data)
 	}
 }
 
-
 int vita2d_init()
+{
+	return vita2d_init_advanced(DEFAULT_TEMP_POOL_SIZE);
+}
+
+int vita2d_init_advanced(unsigned int temp_pool_size)
 {
 	int err;
 	unsigned int i, x, y;
@@ -549,7 +553,7 @@ int vita2d_init()
 	DEBUG("texture wvp sceGxmProgramFindParameterByName(): %p\n", textureWvpParam);
 
 	// Allocate memory for the memory pool
-	pool_size = DEFAULT_TEMP_POOL_SIZE;
+	pool_size = temp_pool_size;
 	pool_addr = gpu_alloc(
 		SCE_KERNEL_MEMBLOCK_TYPE_USER_RW_UNCACHE,
 		pool_size,

@@ -34,10 +34,12 @@ typedef struct vita2d_texture_vertex {
 typedef struct vita2d_texture {
 	SceGxmTexture gxm_tex;
 	SceUID data_UID;
+	SceUID palette_UID;
 } vita2d_texture;
 
 
 int vita2d_init();
+int vita2d_init_advanced(unsigned int temp_pool_size);
 int vita2d_fini();
 
 void vita2d_clear_screen();
@@ -52,7 +54,7 @@ void *vita2d_get_current_fb();
 
 void *vita2d_pool_malloc(unsigned int size);
 void *vita2d_pool_memalign(unsigned int size, unsigned int alignment);
-unsigned int vita2d_pool_space_free();
+unsigned int vita2d_pool_free_space();
 void vita2d_pool_reset();
 
 void vita2d_draw_pixel(float x, float y, unsigned int color);
@@ -69,6 +71,7 @@ unsigned int vita2d_texture_get_height(const vita2d_texture *texture);
 unsigned int vita2d_texture_get_stride(const vita2d_texture *texture);
 SceGxmTextureFormat vita2d_texture_get_format(const vita2d_texture *texture);
 void *vita2d_texture_get_datap(const vita2d_texture *texture);
+void *vita2d_texture_get_palette(const vita2d_texture *texture);
 
 void vita2d_draw_texture(const vita2d_texture *texture, float x, float y);
 void vita2d_draw_texture_rotate(const vita2d_texture *texture, float x, float y, float rad);
