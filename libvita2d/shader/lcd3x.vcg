@@ -1,0 +1,26 @@
+/* COMPATIBILITY
+   - HLSL compilers (untested)
+   - Cg compilers
+*/
+
+/*
+   Author: Gigaherz
+   License: Public domain
+*/
+
+/* configuration (higher values mean brighter image but reduced effect depth) */
+static const int brighten_scanlines = 16;
+static const int brighten_lcd = 4;
+
+void main (
+    uniform float4x4 modelViewProj,
+	float2 texture_size,
+    float3 position, out float4 oPosition : POSITION,
+    float2 tex, out float2 oTex : TEXCOORD0,
+    out float2 omega : TEXCOORD1
+    )
+{
+    oPosition = mul(modelViewProj, float4(position, 1.f));
+    oTex = tex;
+    omega = 3.141592654 * 2 * texture_size;
+}
