@@ -24,7 +24,7 @@
 #define DISPLAY_BUFFER_COUNT		3
 #define DISPLAY_MAX_PENDING_SWAPS	2
 #define MSAA_MODE			SCE_GXM_MULTISAMPLE_NONE
-#define DEFAULT_TEMP_POOL_SIZE		(1 * 1024 * 1024)
+#define DEFAULT_TEMP_POOL_SIZE		(8 * 1024 * 1024)
 
 typedef struct vita2d_display_data {
 	void *address;
@@ -106,6 +106,18 @@ static void *pool_addr = NULL;
 static SceUID poolUid;
 static unsigned int pool_index = 0;
 static unsigned int pool_size = 0;
+
+
+// Fill SceGxmBlendInfo
+const SceGxmBlendInfo blend_info = {
+	.colorFunc = SCE_GXM_BLEND_FUNC_ADD,
+	.alphaFunc = SCE_GXM_BLEND_FUNC_ADD,
+	.colorSrc  = SCE_GXM_BLEND_FACTOR_SRC_ALPHA,
+	.colorDst  = SCE_GXM_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
+	.alphaSrc  = SCE_GXM_BLEND_FACTOR_ONE,
+	.alphaDst  = SCE_GXM_BLEND_FACTOR_ZERO,
+	.colorMask = SCE_GXM_COLOR_MASK_ALL
+};
 
 /* Static functions */
 
@@ -366,6 +378,7 @@ int vita2d_init()
 
 	err = sceGxmShaderPatcherRegisterProgram(shaderPatcher, textureFragmentProgramGxp, &textureFragmentProgramId);
 	DEBUG("texture_f sceGxmShaderPatcherRegisterProgram(): 0x%08X\n", err);
+
 
 	// Fill SceGxmBlendInfo
 	static const SceGxmBlendInfo blend_info = {
@@ -735,4 +748,91 @@ unsigned int vita2d_pool_space_free()
 void vita2d_pool_reset()
 {
 	pool_index = 0;
+}
+
+extern const SceGxmProgram _binary_lcd3x_fcg_gxp_start;
+extern const SceGxmProgram _binary_lcd3x_vcg_gxp_start;
+
+static const SceGxmProgram *const lcd3xVertexProgramGxp   = &_binary_lcd3x_vcg_gxp_start;
+static const SceGxmProgram *const lcd3xFragmentProgramGxp = &_binary_lcd3x_fcg_gxp_start;
+
+SceGxmVertexProgram *lcd3xVertexProgram = NULL;
+SceGxmFragmentProgram *lcd3xFragmentProgram = NULL;
+
+const SceGxmProgramParameter *lcd3xWvpParam = NULL;
+const SceGxmProgramParameter *lcd3xTextureSizeParam = NULL;
+
+static SceGxmShaderPatcherId lcd3xVertexProgramId;
+static SceGxmShaderPatcherId lcd3xFragmentProgramId;
+
+void vita2d_init_lcd3x(){
+	int err;
+
+	UNUSED(err);
+
+	err = sceGxmProgramCheck(lcd3xVertexProgramGxp);
+	DEBUG("texture_v sceGxmProgramCheck(): 0x%08X\n", err);
+	err = sceGxmProgramCheck(lcd3xFragmentProgramGxp);
+	DEBUG("texture_f sceGxmProgramCheck(): 0x%08X\n", err);
+
+	err = sceGxmShaderPatcherRegisterProgram(shaderPatcher, lcd3xVertexProgramGxp, &lcd3xVertexProgramId);
+	DEBUG("texture_v sceGxmShaderPatcherRegisterProgram(): 0x%08X\n", err);
+
+	err = sceGxmShaderPatcherRegisterProgram(shaderPatcher, lcd3xFragmentProgramGxp, &lcd3xFragmentProgramId);
+	DEBUG("texture_f sceGxmShaderPatcherRegisterProgram(): 0x%08X\n", err);
+
+	const SceGxmProgramParameter *paramlcd3xPositionAttribute = sceGxmProgramFindParameterByName(lcd3xVertexProgramGxp, "aPosition");
+	DEBUG("aPosition sceGxmProgramFindParameterByName(): %p\n", paramlcd3xPositionAttribute);
+
+	const SceGxmProgramParameter *paramlcd3xTexcoordAttribute = sceGxmProgramFindParameterByName(lcd3xVertexProgramGxp, "aTexcoord");
+	DEBUG("aTexcoord sceGxmProgramFindParameterByName(): %p\n", paramlcd3xTexcoordAttribute);
+
+	// create texture vertex format
+	SceGxmVertexAttribute lcd3xVertexAttributes[2];
+	SceGxmVertexStream lcd3xVertexStreams[1];
+	/* x,y,z: 3 float 32 bits */
+	lcd3xVertexAttributes[0].streamIndex = 0;
+	lcd3xVertexAttributes[0].offset = 0;
+	lcd3xVertexAttributes[0].format = SCE_GXM_ATTRIBUTE_FORMAT_F32;
+	lcd3xVertexAttributes[0].componentCount = 3; // (x, y, z)
+	lcd3xVertexAttributes[0].regIndex = sceGxmProgramParameterGetResourceIndex(paramlcd3xPositionAttribute);
+	/* u,v: 2 floats 32 bits */
+	lcd3xVertexAttributes[1].streamIndex = 0;
+	lcd3xVertexAttributes[1].offset = 12; // (x, y, z) * 4 = 12 bytes
+	lcd3xVertexAttributes[1].format = SCE_GXM_ATTRIBUTE_FORMAT_F32;
+	lcd3xVertexAttributes[1].componentCount = 2; // (u, v)
+	lcd3xVertexAttributes[1].regIndex = sceGxmProgramParameterGetResourceIndex(paramlcd3xTexcoordAttribute);
+	// 16 bit (short) indices
+	lcd3xVertexStreams[0].stride = sizeof(vita2d_texture_vertex);
+	lcd3xVertexStreams[0].indexSource = SCE_GXM_INDEX_SOURCE_INDEX_16BIT;
+
+	// create texture shaders
+	err = sceGxmShaderPatcherCreateVertexProgram(
+		shaderPatcher,
+		lcd3xVertexProgramId,
+		lcd3xVertexAttributes,
+		2,
+		lcd3xVertexStreams,
+		1,
+		&lcd3xVertexProgram);
+
+	DEBUG("texture sceGxmShaderPatcherCreateVertexProgram(): 0x%08X\n", err);
+
+	err = sceGxmShaderPatcherCreateFragmentProgram(
+		shaderPatcher,
+		lcd3xFragmentProgramId,
+		SCE_GXM_OUTPUT_REGISTER_FORMAT_UCHAR4,
+		MSAA_MODE,
+		&blend_info,
+		lcd3xVertexProgramGxp,
+		&lcd3xFragmentProgram);
+
+	DEBUG("texture sceGxmShaderPatcherCreateFragmentProgram(): 0x%08X\n", err);
+
+	lcd3xTextureSizeParam = sceGxmProgramFindParameterByName(lcd3xVertexProgramGxp, "texture_size");
+	DEBUG("texture lcd3xTextureSizeParam sceGxmProgramFindParameterByName(): %p\n", lcd3xTextureSizeParam);
+
+	lcd3xWvpParam = sceGxmProgramFindParameterByName(lcd3xVertexProgramGxp, "wvp");
+	DEBUG("texture wvp sceGxmProgramFindParameterByName(): %p\n", lcd3xWvpParam);
+
 }

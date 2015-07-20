@@ -34,6 +34,7 @@ typedef struct vita2d_texture_vertex {
 typedef struct vita2d_texture {
 	SceGxmTexture gxm_tex;
 	SceUID data_UID;
+	SceUID palette_UID;
 } vita2d_texture;
 
 
@@ -85,6 +86,10 @@ vita2d_texture *vita2d_load_JPEG_buffer(const void *buffer, unsigned long buffer
 
 vita2d_texture *vita2d_load_BMP_file(const char *filename);
 vita2d_texture *vita2d_load_BMP_buffer(const void *buffer);
+
+void vita2d_draw_texture_lcd3x(const vita2d_texture *texture, float x, float y, float x_scale, float y_scale);
+void vita2d_init_lcd3x();
+void *vita2d_texture_get_palette(const vita2d_texture *texture);
 
 #ifdef __cplusplus
 }
