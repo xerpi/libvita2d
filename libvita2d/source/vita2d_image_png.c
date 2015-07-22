@@ -34,6 +34,13 @@ static vita2d_texture *_vita2d_load_PNG_generic(const void *io_ptr, png_rw_ptr r
 
 	png_bytep *row_ptrs = NULL;
 
+	if (setjmp(png_jmpbuf(png_ptr))) {
+		png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)0);
+		if (row_ptrs != NULL)
+			free(row_ptrs);
+		goto exit_error;
+	}
+
 	png_set_read_fn(png_ptr, (png_voidp)io_ptr, read_data_fn);
 	png_set_sig_bytes(png_ptr, PNG_SIGSIZE);
 	png_read_info(png_ptr, info_ptr);
