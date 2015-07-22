@@ -141,6 +141,19 @@ void *vita2d_texture_get_palette(const vita2d_texture *texture)
 	return sceGxmTextureGetPalette(&texture->gxm_tex);
 }
 
+static inline void set_texture_program()
+{
+	sceGxmSetVertexProgram(context, textureVertexProgram);
+	sceGxmSetFragmentProgram(context, textureFragmentProgram);
+}
+
+static inline void set_texture_wvp_uniform()
+{
+	void *vertexDefaultBuffer;
+	sceGxmReserveVertexDefaultUniformBuffer(context, &vertexDefaultBuffer);
+	sceGxmSetUniformDataF(vertexDefaultBuffer, textureWvpParam, 0, 16, ortho_matrix);
+}
+
 void vita2d_draw_texture(const vita2d_texture *texture, float x, float y)
 {
 	vita2d_texture_vertex *vertices = (vita2d_texture_vertex *)vita2d_pool_memalign(
@@ -183,12 +196,8 @@ void vita2d_draw_texture(const vita2d_texture *texture, float x, float y)
 	indices[2] = 2;
 	indices[3] = 3;
 
-	sceGxmSetVertexProgram(context, textureVertexProgram);
-	sceGxmSetFragmentProgram(context, textureFragmentProgram);
-
-	void *vertexDefaultBuffer;
-	sceGxmReserveVertexDefaultUniformBuffer(context, &vertexDefaultBuffer);
-	sceGxmSetUniformDataF(vertexDefaultBuffer, textureWvpParam, 0, 16, ortho_matrix);
+	set_texture_program();
+	set_texture_wvp_uniform();
 
 	// Set the texture to the TEXUNIT0
 	sceGxmSetFragmentTexture(context, 0, &texture->gxm_tex);
@@ -257,12 +266,8 @@ void vita2d_draw_texture_rotate_hotspot(const vita2d_texture *texture, float x, 
 	indices[2] = 2;
 	indices[3] = 3;
 
-	sceGxmSetVertexProgram(context, textureVertexProgram);
-	sceGxmSetFragmentProgram(context, textureFragmentProgram);
-
-	void *vertexDefaultBuffer;
-	sceGxmReserveVertexDefaultUniformBuffer(context, &vertexDefaultBuffer);
-	sceGxmSetUniformDataF(vertexDefaultBuffer, textureWvpParam, 0, 16, ortho_matrix);
+	set_texture_program();
+	set_texture_wvp_uniform();
 
 	// Set the texture to the TEXUNIT0
 	sceGxmSetFragmentTexture(context, 0, &texture->gxm_tex);
@@ -313,12 +318,8 @@ void vita2d_draw_texture_scale(const vita2d_texture *texture, float x, float y, 
 	indices[2] = 2;
 	indices[3] = 3;
 
-	sceGxmSetVertexProgram(context, textureVertexProgram);
-	sceGxmSetFragmentProgram(context, textureFragmentProgram);
-
-	void *vertexDefaultBuffer;
-	sceGxmReserveVertexDefaultUniformBuffer(context, &vertexDefaultBuffer);
-	sceGxmSetUniformDataF(vertexDefaultBuffer, textureWvpParam, 0, 16, ortho_matrix);
+	set_texture_program();
+	set_texture_wvp_uniform();
 
 	// Set the texture to the TEXUNIT0
 	sceGxmSetFragmentTexture(context, 0, &texture->gxm_tex);
@@ -374,12 +375,8 @@ void vita2d_draw_texture_part(const vita2d_texture *texture, float x, float y, f
 	indices[2] = 2;
 	indices[3] = 3;
 
-	sceGxmSetVertexProgram(context, textureVertexProgram);
-	sceGxmSetFragmentProgram(context, textureFragmentProgram);
-
-	void *vertexDefaultBuffer;
-	sceGxmReserveVertexDefaultUniformBuffer(context, &vertexDefaultBuffer);
-	sceGxmSetUniformDataF(vertexDefaultBuffer, textureWvpParam, 0, 16, ortho_matrix);
+	set_texture_program();
+	set_texture_wvp_uniform();
 
 	// Set the texture to the TEXUNIT0
 	sceGxmSetFragmentTexture(context, 0, &texture->gxm_tex);
@@ -438,12 +435,8 @@ void vita2d_draw_texture_part_scale(const vita2d_texture *texture, float x, floa
 	indices[2] = 2;
 	indices[3] = 3;
 
-	sceGxmSetVertexProgram(context, textureVertexProgram);
-	sceGxmSetFragmentProgram(context, textureFragmentProgram);
-
-	void *vertexDefaultBuffer;
-	sceGxmReserveVertexDefaultUniformBuffer(context, &vertexDefaultBuffer);
-	sceGxmSetUniformDataF(vertexDefaultBuffer, textureWvpParam, 0, 16, ortho_matrix);
+	set_texture_program();
+	set_texture_wvp_uniform();
 
 	// Set the texture to the TEXUNIT0
 	sceGxmSetFragmentTexture(context, 0, &texture->gxm_tex);
