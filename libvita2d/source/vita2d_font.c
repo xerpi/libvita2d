@@ -128,7 +128,7 @@ void vita2d_draw_text(vita2d_font *font, int x, int y, unsigned int color, unsig
 	FT_Bool use_kerning = FT_HAS_KERNING(face);
 	FT_UInt previous = 0;
 	int pen_x = x;
-	int pen_y = y;
+	int pen_y = y + size;
 
 	FT_Set_Pixel_Sizes(face, 0, size);
 
@@ -160,8 +160,8 @@ void vita2d_draw_text(vita2d_font *font, int x, int y, unsigned int color, unsig
 			&advance_x, &advance_y);
 
 		vita2d_draw_texture_part(font->tex_atlas->tex,
-			pen_x + bitmap_left + x,
-			pen_y - bitmap_top + y,
+			pen_x + bitmap_left,
+			pen_y - bitmap_top,
 			rect.x, rect.y, rect.w, rect.h);
 
 		pen_x += advance_x >> 6;
@@ -179,4 +179,50 @@ void vita2d_draw_textf(vita2d_font *font, int x, int y, unsigned int color, unsi
 	vsnprintf(buf, sizeof(buf), text, argptr);
 	va_end(argptr);
 	vita2d_draw_text(font, x, y, color, size, buf);
+}
+
+void vita2d_font_text_dimensions(vita2d_font *font, unsigned int size, const char *text, int *width, int *height)
+{
+	FT_Face face = font->face;
+	FT_GlyphSlot slot = face->glyph;
+	FT_UInt glyph_index;
+	FT_Bool use_kerning = FT_HAS_KERNING(face);
+	FT_UInt previous = 0;
+	int pen_x = 0;
+
+	FT_Set_Pixel_Sizes(face, 0, size);
+
+	while (*text) {
+		char character = *text++;
+		glyph_index = FT_Get_Char_Index(face, character);
+
+		if (use_kerning && previous && glyph_index) {
+			FT_Vector delta;
+			FT_Get_Kerning(face, previous, glyph_index, FT_KERNING_DEFAULT, &delta);
+			pen_x += delta.x >> 6;
+		}
+
+		if (FT_Load_Glyph(face, glyph_index, FT_LOAD_DEFAULT)) continue;
+
+		pen_x += slot->advance.x >> 6;
+
+		previous = glyph_index;
+	}
+	if (width)
+		*width = pen_x;
+	if (height)
+		*height = face->size->metrics.height >> 6;
+}
+
+int vita2d_font_text_width(vita2d_font *font, unsigned int size, const char *text)
+{
+	int width;
+	vita2d_font_text_dimensions(font, size, text, &width, NULL);
+	return width;
+}
+
+int vita2d_font_text_height(vita2d_font *font, unsigned int size, const char *text)
+{
+	FT_Set_Pixel_Sizes(font->face, 0, size);
+	return font->face->size->metrics.height >> 6;
 }
