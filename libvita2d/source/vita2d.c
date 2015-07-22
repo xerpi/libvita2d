@@ -38,15 +38,17 @@ extern const SceGxmProgram color_v_gxp_start;
 extern const SceGxmProgram color_f_gxp_start;
 extern const SceGxmProgram texture_v_gxp_start;
 extern const SceGxmProgram texture_f_gxp_start;
+extern const SceGxmProgram texture_tint_f_gxp_start;
 
 /* Static variables */
 
-static const SceGxmProgram *const clearVertexProgramGxp     = &clear_v_gxp_start;
-static const SceGxmProgram *const clearFragmentProgramGxp   = &clear_f_gxp_start;
-static const SceGxmProgram *const colorVertexProgramGxp     = &color_v_gxp_start;
-static const SceGxmProgram *const colorFragmentProgramGxp   = &color_f_gxp_start;
-static const SceGxmProgram *const textureVertexProgramGxp   = &texture_v_gxp_start;
-static const SceGxmProgram *const textureFragmentProgramGxp = &texture_f_gxp_start;
+static const SceGxmProgram *const clearVertexProgramGxp         = &clear_v_gxp_start;
+static const SceGxmProgram *const clearFragmentProgramGxp       = &clear_f_gxp_start;
+static const SceGxmProgram *const colorVertexProgramGxp         = &color_v_gxp_start;
+static const SceGxmProgram *const colorFragmentProgramGxp       = &color_f_gxp_start;
+static const SceGxmProgram *const textureVertexProgramGxp       = &texture_v_gxp_start;
+static const SceGxmProgram *const textureFragmentProgramGxp     = &texture_f_gxp_start;
+static const SceGxmProgram *const textureTintFragmentProgramGxp = &texture_tint_f_gxp_start;
 
 static int vita2d_initialized = 0;
 static float clear_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
@@ -80,6 +82,7 @@ static SceGxmShaderPatcherId colorVertexProgramId;
 static SceGxmShaderPatcherId colorFragmentProgramId;
 static SceGxmShaderPatcherId textureVertexProgramId;
 static SceGxmShaderPatcherId textureFragmentProgramId;
+static SceGxmShaderPatcherId textureTintFragmentProgramId;
 
 static SceUID patcherBufferUid;
 static SceUID patcherVertexUsseUid;
@@ -97,9 +100,11 @@ SceGxmVertexProgram *colorVertexProgram = NULL;
 SceGxmFragmentProgram *colorFragmentProgram = NULL;
 SceGxmVertexProgram *textureVertexProgram = NULL;
 SceGxmFragmentProgram *textureFragmentProgram = NULL;
+SceGxmFragmentProgram *textureTintFragmentProgram = NULL;
 const SceGxmProgramParameter *clearClearColorParam = NULL;
 const SceGxmProgramParameter *colorWvpParam = NULL;
 const SceGxmProgramParameter *textureWvpParam = NULL;
+const SceGxmProgramParameter *textureTintColorParam = NULL;
 
 // Temporary memory pool
 static void *pool_addr = NULL;
@@ -351,6 +356,8 @@ int vita2d_init_advanced(unsigned int temp_pool_size)
 	DEBUG("texture_v sceGxmProgramCheck(): 0x%08X\n", err);
 	err = sceGxmProgramCheck(textureFragmentProgramGxp);
 	DEBUG("texture_f sceGxmProgramCheck(): 0x%08X\n", err);
+	err = sceGxmProgramCheck(textureTintFragmentProgramGxp);
+	DEBUG("texture_tint_f sceGxmProgramCheck(): 0x%08X\n", err);
 
 	// register programs with the patcher
 	err = sceGxmShaderPatcherRegisterProgram(shaderPatcher, clearVertexProgramGxp, &clearVertexProgramId);
@@ -370,6 +377,9 @@ int vita2d_init_advanced(unsigned int temp_pool_size)
 
 	err = sceGxmShaderPatcherRegisterProgram(shaderPatcher, textureFragmentProgramGxp, &textureFragmentProgramId);
 	DEBUG("texture_f sceGxmShaderPatcherRegisterProgram(): 0x%08X\n", err);
+
+	err = sceGxmShaderPatcherRegisterProgram(shaderPatcher, textureTintFragmentProgramGxp, &textureTintFragmentProgramId);
+	DEBUG("texture_tint_f sceGxmShaderPatcherRegisterProgram(): 0x%08X\n", err);
 
 	// Fill SceGxmBlendInfo
 	static const SceGxmBlendInfo blend_info = {
@@ -542,6 +552,17 @@ int vita2d_init_advanced(unsigned int temp_pool_size)
 
 	DEBUG("texture sceGxmShaderPatcherCreateFragmentProgram(): 0x%08X\n", err);
 
+	err = sceGxmShaderPatcherCreateFragmentProgram(
+		shaderPatcher,
+		textureTintFragmentProgramId,
+		SCE_GXM_OUTPUT_REGISTER_FORMAT_UCHAR4,
+		MSAA_MODE,
+		&blend_info,
+		textureVertexProgramGxp,
+		&textureTintFragmentProgram);
+
+	DEBUG("texture_tint sceGxmShaderPatcherCreateFragmentProgram(): 0x%08X\n", err);
+
 	// find vertex uniforms by name and cache parameter information
 	clearClearColorParam = sceGxmProgramFindParameterByName(clearFragmentProgramGxp, "uClearColor");
 	DEBUG("clearClearColorParam sceGxmProgramFindParameterByName(): %p\n", clearClearColorParam);
@@ -550,6 +571,9 @@ int vita2d_init_advanced(unsigned int temp_pool_size)
 	DEBUG("color wvp sceGxmProgramFindParameterByName(): %p\n", colorWvpParam);
 
 	textureWvpParam = sceGxmProgramFindParameterByName(textureVertexProgramGxp, "wvp");
+	DEBUG("texture wvp sceGxmProgramFindParameterByName(): %p\n", textureWvpParam);
+
+	textureTintColorParam = sceGxmProgramFindParameterByName(textureTintFragmentProgramGxp, "uTintColor");
 	DEBUG("texture wvp sceGxmProgramFindParameterByName(): %p\n", textureWvpParam);
 
 	// Allocate memory for the memory pool
@@ -588,6 +612,7 @@ int vita2d_fini()
 	sceGxmShaderPatcherReleaseFragmentProgram(shaderPatcher, colorFragmentProgram);
 	sceGxmShaderPatcherReleaseVertexProgram(shaderPatcher, colorVertexProgram);
 	sceGxmShaderPatcherReleaseFragmentProgram(shaderPatcher, textureFragmentProgram);
+	sceGxmShaderPatcherReleaseFragmentProgram(shaderPatcher, textureTintFragmentProgram);
 	sceGxmShaderPatcherReleaseVertexProgram(shaderPatcher, textureVertexProgram);
 	gpu_free(clearIndicesUid);
 	gpu_free(clearVerticesUid);
@@ -612,6 +637,7 @@ int vita2d_fini()
 	sceGxmShaderPatcherUnregisterProgram(shaderPatcher, colorFragmentProgramId);
 	sceGxmShaderPatcherUnregisterProgram(shaderPatcher, colorVertexProgramId);
 	sceGxmShaderPatcherUnregisterProgram(shaderPatcher, textureFragmentProgramId);
+	sceGxmShaderPatcherUnregisterProgram(shaderPatcher, textureTintFragmentProgramId);
 	sceGxmShaderPatcherUnregisterProgram(shaderPatcher, textureVertexProgramId);
 
 	sceGxmShaderPatcherDestroy(shaderPatcher);

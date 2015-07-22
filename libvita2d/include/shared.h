@@ -8,8 +8,10 @@ extern SceGxmVertexProgram *colorVertexProgram;
 extern SceGxmFragmentProgram *colorFragmentProgram;
 extern SceGxmVertexProgram *textureVertexProgram;
 extern SceGxmFragmentProgram *textureFragmentProgram;
+extern SceGxmFragmentProgram *textureTintFragmentProgram;
 extern const SceGxmProgramParameter *colorWvpParam;
 extern const SceGxmProgramParameter *textureWvpParam;
+extern SceGxmProgramParameter *textureTintColorParam;
 
 
 #endif

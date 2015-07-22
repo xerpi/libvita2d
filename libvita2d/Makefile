@@ -5,7 +5,8 @@ OBJS       = source/vita2d.o source/vita2d_texture.o source/vita2d_draw.o source
 INCLUDES   = include
 SHADERS    = shader/compiled/clear_v_gxp.o shader/compiled/clear_f_gxp.o \
              shader/compiled/color_v_gxp.o shader/compiled/color_f_gxp.o \
-             shader/compiled/texture_v_gxp.o shader/compiled/texture_f_gxp.o
+             shader/compiled/texture_v_gxp.o shader/compiled/texture_f_gxp.o \
+             shader/compiled/texture_tint_f_gxp.o
 
 PREFIX  = $(DEVKITARM)/bin/arm-none-eabi
 CC      = $(PREFIX)-gcc
