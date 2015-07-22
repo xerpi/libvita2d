@@ -88,7 +88,7 @@ void vita2d_free_font(vita2d_font *font)
 	free(font);
 }
 
-static int atlas_add_glyph(texture_atlas *atlas, unsigned char character, const FT_GlyphSlot slot, unsigned int color)
+static int atlas_add_glyph(texture_atlas *atlas, unsigned char character, const FT_GlyphSlot slot)
 {
 	const FT_Bitmap *bitmap = &slot->bitmap;
 
@@ -102,9 +102,9 @@ static int atlas_add_glyph(texture_atlas *atlas, unsigned char character, const 
 			if (bitmap->pixel_mode == FT_PIXEL_MODE_MONO) {
 				buffer[j*w + k] =
 					(bitmap->buffer[j*bitmap->pitch + k/8] & (1 << (7 - k%8)))
-					? color : 0;
+					? RGBA8(255, 255, 255, 255) : 0;
 			} else {
-				buffer[j*w + k] = (color & ~0xFF000000)
+				buffer[j*w + k] = RGBA8(255, 255, 255, 0)
 					| (bitmap->buffer[j*bitmap->pitch + k] << 24);
 			}
 		}
@@ -146,7 +146,7 @@ void vita2d_draw_text(vita2d_font *font, int x, int y, unsigned int color, unsig
 			if (FT_Load_Glyph(face, glyph_index, FT_LOAD_DEFAULT)) continue;
 			if (FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL)) continue;
 
-			if (!atlas_add_glyph(font->tex_atlas, character, slot, color)) {
+			if (!atlas_add_glyph(font->tex_atlas, character, slot)) {
 				continue;
 			}
 		}
@@ -159,10 +159,11 @@ void vita2d_draw_text(vita2d_font *font, int x, int y, unsigned int color, unsig
 			&rect, &bitmap_left, &bitmap_top,
 			&advance_x, &advance_y);
 
-		vita2d_draw_texture_part(font->tex_atlas->tex,
+		vita2d_draw_texture_tint_part(font->tex_atlas->tex,
 			pen_x + bitmap_left,
 			pen_y - bitmap_top,
-			rect.x, rect.y, rect.w, rect.h);
+			rect.x, rect.y, rect.w, rect.h,
+			color);
 
 		pen_x += advance_x >> 6;
 		pen_y += advance_y >> 6;
