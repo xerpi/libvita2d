@@ -37,6 +37,7 @@ typedef struct vita2d_texture {
 	SceUID palette_UID;
 } vita2d_texture;
 
+typedef struct vita2d_font vita2d_font;
 
 int vita2d_init();
 int vita2d_init_advanced(unsigned int temp_pool_size);
@@ -88,6 +89,13 @@ vita2d_texture *vita2d_load_JPEG_buffer(const void *buffer, unsigned long buffer
 
 vita2d_texture *vita2d_load_BMP_file(const char *filename);
 vita2d_texture *vita2d_load_BMP_buffer(const void *buffer);
+
+vita2d_font *vita2d_load_font_file(const char *pathname);
+vita2d_font *vita2d_load_font_mem(const void *buffer, unsigned int size);
+void vita2d_free_font(vita2d_font *font);
+void vita2d_draw_text(vita2d_font *font, int x, int y, unsigned int color, unsigned int size, const char *text);
+void vita2d_draw_textf(vita2d_font *font, int x, int y, unsigned int color, unsigned int size, const char *text, ...);
+
 
 #ifdef __cplusplus
 }
