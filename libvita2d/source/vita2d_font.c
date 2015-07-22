@@ -104,7 +104,8 @@ static int atlas_add_glyph(texture_atlas *atlas, unsigned char character, const 
 					(bitmap->buffer[j*bitmap->pitch + k/8] & (1 << (7 - k%8)))
 					? color : 0;
 			} else {
-				buffer[j*w + k] = (color & ~0xFF000000) | (bitmap->buffer[j*bitmap->pitch + k] << 24);
+				buffer[j*w + k] = (color & ~0xFF000000)
+					| (bitmap->buffer[j*bitmap->pitch + k] << 24);
 			}
 		}
 	}
@@ -143,7 +144,7 @@ void vita2d_draw_text(vita2d_font *font, int x, int y, unsigned int color, unsig
 
 		if (!texture_atlas_exists(font->tex_atlas, character)) {
 			if (FT_Load_Glyph(face, glyph_index, FT_LOAD_DEFAULT)) continue;
-			if (FT_Render_Glyph(face->glyph, FT_RENDER_MODE_MONO)) continue;
+			if (FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL)) continue;
 
 			if (!atlas_add_glyph(font->tex_atlas, character, slot, color)) {
 				continue;
