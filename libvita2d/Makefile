@@ -11,7 +11,7 @@ SHADERS    = shader/compiled/clear_v_gxp.o shader/compiled/clear_f_gxp.o \
 PREFIX  = $(DEVKITARM)/bin/arm-none-eabi
 CC      = $(PREFIX)-gcc
 AR      = $(PREFIX)-ar
-CFLAGS  = -Wall -mfloat-abi=softfp -specs=psp2.specs -I$(INCLUDES) -I$(PSP2SDK)/include/freetype2
+CFLAGS  = -Wall -specs=psp2.specs -I$(INCLUDES) -I$(PSP2SDK)/include/freetype2
 ASFLAGS = $(CFLAGS)
 
 all: $(TARGET_LIB)
@@ -21,20 +21,6 @@ debug: all
 
 $(TARGET_LIB): $(SHADERS) $(OBJS)
 	$(AR) -rc $@ $^
-
-#%.o: %.gxp
-#	bin2s $^ > $(^:.gxp=.s)
-#	$(CC) $(CFLAGS) -c $(^:.gxp=.s) -o $@
-
-#%.frag.o: %.frag.cg
-#	cgc -profile ps_3_0 $^ -o $(@:.o=.gxp)
-#	bin2s $(@:.o=.gxp) > $(@:.o=.s)
-#	$(CC) $(CFLAGS) -c $(@:.o=.s) -o $@
-
-#%.vert.o: %.vert.cg
-#	cgc -profile vs_3_0 $^ -o $(@:.o=.gxp)
-#	bin2s $(@:.o=.gxp) > $(@:.o=.s)
-#	$(CC) $(CFLAGS) -c $(@:.o=.s) -o $@
 
 clean:
 	@rm -rf $(TARGET_LIB) $(OBJS)
