@@ -92,7 +92,7 @@ void vita2d_free_font(vita2d_font *font)
 	free(font);
 }
 
-static int atlas_add_glyph(texture_atlas *atlas, unsigned char character, const FT_GlyphSlot slot)
+static int atlas_add_glyph(texture_atlas *atlas, unsigned int glyph_index, const FT_GlyphSlot slot)
 {
 	const FT_Bitmap *bitmap = &slot->bitmap;
 
@@ -114,7 +114,7 @@ static int atlas_add_glyph(texture_atlas *atlas, unsigned char character, const 
 		}
 	}
 
-	int ret = texture_atlas_insert(atlas, character, buffer,
+	int ret = texture_atlas_insert(atlas, glyph_index, buffer,
 		bitmap->width, bitmap->rows,
 		slot->bitmap_left, slot->bitmap_top,
 		slot->advance.x, slot->advance.y);
@@ -137,8 +137,7 @@ void vita2d_draw_text(vita2d_font *font, int x, int y, unsigned int color, unsig
 	FT_Set_Pixel_Sizes(face, 0, size);
 
 	while (*text) {
-		char character = *text++;
-		glyph_index = FT_Get_Char_Index(face, character);
+		glyph_index = FT_Get_Char_Index(face, *text++);
 
 		if (use_kerning && previous && glyph_index) {
 			FT_Vector delta;
@@ -146,11 +145,11 @@ void vita2d_draw_text(vita2d_font *font, int x, int y, unsigned int color, unsig
 			pen_x += delta.x >> 6;
 		}
 
-		if (!texture_atlas_exists(font->tex_atlas, character)) {
+		if (!texture_atlas_exists(font->tex_atlas, glyph_index)) {
 			if (FT_Load_Glyph(face, glyph_index, FT_LOAD_DEFAULT)) continue;
 			if (FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL)) continue;
 
-			if (!atlas_add_glyph(font->tex_atlas, character, slot)) {
+			if (!atlas_add_glyph(font->tex_atlas, glyph_index, slot)) {
 				continue;
 			}
 		}
@@ -159,7 +158,7 @@ void vita2d_draw_text(vita2d_font *font, int x, int y, unsigned int color, unsig
 		int bitmap_left, bitmap_top;
 		int advance_x, advance_y;
 
-		texture_atlas_get(font->tex_atlas, character,
+		texture_atlas_get(font->tex_atlas, glyph_index,
 			&rect, &bitmap_left, &bitmap_top,
 			&advance_x, &advance_y);
 
@@ -198,8 +197,7 @@ void vita2d_font_text_dimensions(vita2d_font *font, unsigned int size, const cha
 	FT_Set_Pixel_Sizes(face, 0, size);
 
 	while (*text) {
-		char character = *text++;
-		glyph_index = FT_Get_Char_Index(face, character);
+		glyph_index = FT_Get_Char_Index(face, *text++);
 
 		if (use_kerning && previous && glyph_index) {
 			FT_Vector delta;
