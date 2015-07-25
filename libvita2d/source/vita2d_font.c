@@ -44,6 +44,8 @@ vita2d_font *vita2d_load_font_file(const char *pathname)
 		return NULL;
 	}
 
+	FT_Select_Charmap(font->face, FT_ENCODING_UNICODE);
+
 	font->tex_atlas = texture_atlas_create(ATLAS_DEFAULT_W, ATLAS_DEFAULT_H);
 
 	return font;
@@ -74,6 +76,8 @@ vita2d_font *vita2d_load_font_mem(const void *buffer, unsigned int size)
 		free(font);
 		return NULL;
 	}
+
+	FT_Select_Charmap(font->face, FT_ENCODING_UNICODE);
 
 	font->tex_atlas = texture_atlas_create(ATLAS_DEFAULT_W, ATLAS_DEFAULT_H);
 
