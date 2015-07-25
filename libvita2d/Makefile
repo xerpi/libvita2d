@@ -1,7 +1,8 @@
 TARGET_LIB = libvita2d.a
 OBJS       = source/vita2d.o source/vita2d_texture.o source/vita2d_draw.o source/utils.o \
              source/vita2d_image_png.o source/vita2d_image_jpeg.o source/vita2d_image_bmp.o \
-             source/bin_packing_2d.o source/texture_atlas.o source/vita2d_font.o
+             source/vita2d_font.o source/bin_packing_2d.o source/texture_atlas.o \
+             source/int_htab.o
 INCLUDES   = include
 SHADERS    = shader/compiled/clear_v_gxp.o shader/compiled/clear_f_gxp.o \
              shader/compiled/color_v_gxp.o shader/compiled/color_f_gxp.o \
