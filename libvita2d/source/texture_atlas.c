@@ -16,7 +16,7 @@ texture_atlas *texture_atlas_create(int width, int height)
 
 	atlas->tex = vita2d_create_empty_texture(width, height);
 	atlas->bp_root = bp2d_create(&rect);
-	atlas->htab = int_htab_create();
+	atlas->htab = int_htab_create(256);
 
 	return atlas;
 }
@@ -65,12 +65,12 @@ int texture_atlas_insert(texture_atlas *atlas, unsigned int character, const voi
 
 int texture_atlas_exists(texture_atlas *atlas, unsigned int character)
 {
-	return int_htab_get(atlas->htab, character) != NULL;
+	return int_htab_find(atlas->htab, character) != NULL;
 }
 
 void texture_atlas_get(texture_atlas *atlas, unsigned int character, bp2d_rectangle *rect, int *bitmap_left, int *bitmap_top, int *advance_x, int *advance_y)
 {
-	atlas_htab_entry *entry = int_htab_get(atlas->htab, character);
+	atlas_htab_entry *entry = int_htab_find(atlas->htab, character);
 
 	rect->x = entry->rect.x;
 	rect->y = entry->rect.y;

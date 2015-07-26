@@ -13,20 +13,29 @@ static inline unsigned int FNV_1a(unsigned int key)
 	return hash;
 }
 
-int_htab *int_htab_create()
+int_htab *int_htab_create(size_t size)
 {
 	int_htab *htab = malloc(sizeof(*htab));
 	if (!htab)
 		return NULL;
 
-
-	htab->size = INT_HTAB_INITIAL_SIZE;
+	htab->size = size;
 	htab->used = 0;
 
-	htab->entries = malloc(INT_HTAB_INITIAL_SIZE * sizeof(*htab->entries));
-	memset(htab->entries, 0, INT_HTAB_INITIAL_SIZE * sizeof(*htab->entries));
+	htab->entries = malloc(htab->size * sizeof(*htab->entries));
+	memset(htab->entries, 0, htab->size * sizeof(*htab->entries));
 
 	return htab;
+}
+
+void int_htab_free(int_htab *htab)
+{
+	int i;
+	for (i = 0; i < htab->size; i++) {
+		if (htab->entries[i].value != NULL)
+			free(htab->entries[i].value);
+	}
+	free(htab);
 }
 
 void int_htab_resize(int_htab *htab, unsigned int new_size)
@@ -57,6 +66,11 @@ int int_htab_insert(int_htab *htab, unsigned int key, void *value)
 	if (value == NULL)
 		return 0;
 
+	/* Calculate the current load factor */
+	if (((htab->used + 1)*100)/htab->size > INT_HTAB_MAX_LOAD) {
+		int_htab_resize(htab, 2*htab->size);
+	}
+
 	unsigned int mask = htab->size - 1;
 	unsigned int idx = FNV_1a(key) & mask;
 
@@ -65,24 +79,14 @@ int int_htab_insert(int_htab *htab, unsigned int key, void *value)
 		idx = (idx + 1) & mask;
 	}
 
-	/* Found an empty slot */
-	if (htab->entries[idx].value == NULL) {
-		htab->entries[idx].key = key;
-		htab->entries[idx].value = value;
-		htab->used++;
+	htab->entries[idx].key = key;
+	htab->entries[idx].value = value;
+	htab->used++;
 
-		/* Calculate current load factor */
-		if ((htab->used*100)/htab->size > INT_HTAB_MAX_LOAD) {
-			int_htab_resize(htab, 2*htab->size);
-		}
-
-		return 1;
-	}
-
-	return 0;
+	return 1;
 }
 
-void *int_htab_get(const int_htab *htab, unsigned int key)
+void *int_htab_find(const int_htab *htab, unsigned int key)
 {
 	unsigned int mask = htab->size - 1;
 	unsigned int idx = FNV_1a(key) & mask;
@@ -100,12 +104,21 @@ void *int_htab_get(const int_htab *htab, unsigned int key)
 	return NULL;
 }
 
-void int_htab_free(int_htab *htab)
+int int_htab_erase(const int_htab *htab, unsigned int key)
 {
-	int i;
-	for (i = 0; i < htab->size; i++) {
-		if (htab->entries[i].value != NULL)
-			free(htab->entries[i].value);
+	unsigned int mask = htab->size - 1;
+	unsigned int idx = FNV_1a(key) & mask;
+
+	/* Open addressing, linear probing */
+	while (htab->entries[idx].key != key && htab->entries[idx].value != NULL) {
+		idx = (idx + 1) & mask;
 	}
-	free(htab);
+
+	/* Found the key */
+	if (htab->entries[idx].key == key) {
+		htab->entries[idx].value = NULL;
+		return 1;
+	}
+
+	return 0;
 }
