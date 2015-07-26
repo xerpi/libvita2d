@@ -23,7 +23,7 @@ typedef struct texture_atlas {
 	int_htab *htab;
 } texture_atlas;
 
-texture_atlas *texture_atlas_create(int width, int height);
+texture_atlas *texture_atlas_create(int width, int height, SceGxmTextureFormat format);
 void texture_atlas_free(texture_atlas *atlas);
 int texture_atlas_insert(texture_atlas *atlas, unsigned int character, const void *image, int width, int height, int bitmap_left, int bitmap_top, int advance_x, int advance_y);
 int texture_atlas_exists(texture_atlas *atlas, unsigned int character);

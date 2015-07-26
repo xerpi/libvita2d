@@ -2,7 +2,7 @@
 #include <string.h>
 #include "texture_atlas.h"
 
-texture_atlas *texture_atlas_create(int width, int height)
+texture_atlas *texture_atlas_create(int width, int height, SceGxmTextureFormat format)
 {
 	texture_atlas *atlas = malloc(sizeof(*atlas));
 	if (!atlas)
@@ -14,7 +14,7 @@ texture_atlas *texture_atlas_create(int width, int height)
 	rect.w = width;
 	rect.h = height;
 
-	atlas->tex = vita2d_create_empty_texture(width, height);
+	atlas->tex = vita2d_create_empty_texture_format(width, height, format);
 	atlas->bp_root = bp2d_create(&rect);
 	atlas->htab = int_htab_create(256);
 
@@ -57,7 +57,7 @@ int texture_atlas_insert(texture_atlas *atlas, unsigned int character, const voi
 
 	int i;
 	for (i = 0; i < height; i++) {
-		memcpy(tex_data + (pos.x + (pos.y + i)*tex_width)*4, image + i*width*4, width*4);
+		memcpy(tex_data + (pos.x + (pos.y + i)*tex_width), image + i*width, width);
 	}
 
 	return 1;

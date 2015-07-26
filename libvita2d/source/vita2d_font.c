@@ -46,7 +46,8 @@ vita2d_font *vita2d_load_font_file(const char *pathname)
 
 	FT_Select_Charmap(font->face, FT_ENCODING_UNICODE);
 
-	font->tex_atlas = texture_atlas_create(ATLAS_DEFAULT_W, ATLAS_DEFAULT_H);
+	font->tex_atlas = texture_atlas_create(ATLAS_DEFAULT_W, ATLAS_DEFAULT_H,
+		SCE_GXM_TEXTURE_FORMAT_U8_R111);
 
 	return font;
 }
@@ -79,7 +80,8 @@ vita2d_font *vita2d_load_font_mem(const void *buffer, unsigned int size)
 
 	FT_Select_Charmap(font->face, FT_ENCODING_UNICODE);
 
-	font->tex_atlas = texture_atlas_create(ATLAS_DEFAULT_W, ATLAS_DEFAULT_H);
+	font->tex_atlas = texture_atlas_create(ATLAS_DEFAULT_W, ATLAS_DEFAULT_H,
+		SCE_GXM_TEXTURE_FORMAT_U8_R111);
 
 	return font;
 }
@@ -96,7 +98,7 @@ static int atlas_add_glyph(texture_atlas *atlas, unsigned int glyph_index, const
 {
 	const FT_Bitmap *bitmap = &slot->bitmap;
 
-	unsigned int *buffer = malloc(bitmap->width * bitmap->rows * 4);
+	unsigned char *buffer = malloc(bitmap->width * bitmap->rows);
 	unsigned int w = bitmap->width;
 	unsigned int h = bitmap->rows;
 
@@ -106,10 +108,9 @@ static int atlas_add_glyph(texture_atlas *atlas, unsigned int glyph_index, const
 			if (bitmap->pixel_mode == FT_PIXEL_MODE_MONO) {
 				buffer[j*w + k] =
 					(bitmap->buffer[j*bitmap->pitch + k/8] & (1 << (7 - k%8)))
-					? RGBA8(255, 255, 255, 255) : 0;
+					? 0xFF : 0;
 			} else {
-				buffer[j*w + k] = RGBA8(255, 255, 255, 0)
-					| (bitmap->buffer[j*bitmap->pitch + k] << 24);
+				buffer[j*w + k] = bitmap->buffer[j*bitmap->pitch + k];
 			}
 		}
 	}
