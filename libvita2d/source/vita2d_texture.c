@@ -143,27 +143,27 @@ void *vita2d_texture_get_palette(const vita2d_texture *texture)
 
 static inline void set_texture_program()
 {
-	sceGxmSetVertexProgram(context, textureVertexProgram);
-	sceGxmSetFragmentProgram(context, textureFragmentProgram);
+	sceGxmSetVertexProgram(_vita2d_context, _vita2d_textureVertexProgram);
+	sceGxmSetFragmentProgram(_vita2d_context, _vita2d_textureFragmentProgram);
 }
 
 static inline void set_texture_tint_program()
 {
-	sceGxmSetVertexProgram(context, textureVertexProgram);
-	sceGxmSetFragmentProgram(context, textureTintFragmentProgram);
+	sceGxmSetVertexProgram(_vita2d_context, _vita2d_textureVertexProgram);
+	sceGxmSetFragmentProgram(_vita2d_context, _vita2d_textureTintFragmentProgram);
 }
 
 static inline void set_texture_wvp_uniform()
 {
 	void *vertex_wvp_buffer;
-	sceGxmReserveVertexDefaultUniformBuffer(context, &vertex_wvp_buffer);
-	sceGxmSetUniformDataF(vertex_wvp_buffer, textureWvpParam, 0, 16, ortho_matrix);
+	sceGxmReserveVertexDefaultUniformBuffer(_vita2d_context, &vertex_wvp_buffer);
+	sceGxmSetUniformDataF(vertex_wvp_buffer, _vita2d_textureWvpParam, 0, 16, _vita2d_ortho_matrix);
 }
 
 static inline void set_texture_tint_color_uniform(unsigned int color)
 {
 	void *texture_tint_color_buffer;
-	sceGxmReserveFragmentDefaultUniformBuffer(context, &texture_tint_color_buffer);
+	sceGxmReserveFragmentDefaultUniformBuffer(_vita2d_context, &texture_tint_color_buffer);
 
 	float *tint_color = vita2d_pool_memalign(
 		4 * sizeof(float), // RGBA
@@ -174,7 +174,7 @@ static inline void set_texture_tint_color_uniform(unsigned int color)
 	tint_color[2] = ((color >> 8*2) & 0xFF)/255.0f;
 	tint_color[3] = ((color >> 8*3) & 0xFF)/255.0f;
 
-	sceGxmSetUniformDataF(texture_tint_color_buffer, textureTintColorParam, 0, 4, tint_color);
+	sceGxmSetUniformDataF(texture_tint_color_buffer, _vita2d_textureTintColorParam, 0, 4, tint_color);
 }
 
 static inline void draw_texture_generic(const vita2d_texture *texture, float x, float y)
@@ -220,10 +220,10 @@ static inline void draw_texture_generic(const vita2d_texture *texture, float x, 
 	indices[3] = 3;
 
 	// Set the texture to the TEXUNIT0
-	sceGxmSetFragmentTexture(context, 0, &texture->gxm_tex);
+	sceGxmSetFragmentTexture(_vita2d_context, 0, &texture->gxm_tex);
 
-	sceGxmSetVertexStream(context, 0, vertices);
-	sceGxmDraw(context, SCE_GXM_PRIMITIVE_TRIANGLE_STRIP, SCE_GXM_INDEX_FORMAT_U16, indices, 4);
+	sceGxmSetVertexStream(_vita2d_context, 0, vertices);
+	sceGxmDraw(_vita2d_context, SCE_GXM_PRIMITIVE_TRIANGLE_STRIP, SCE_GXM_INDEX_FORMAT_U16, indices, 4);
 }
 
 void vita2d_draw_texture(const vita2d_texture *texture, float x, float y)
@@ -309,10 +309,10 @@ static inline void draw_texture_rotate_hotspot_generic(const vita2d_texture *tex
 	indices[3] = 3;
 
 	// Set the texture to the TEXUNIT0
-	sceGxmSetFragmentTexture(context, 0, &texture->gxm_tex);
+	sceGxmSetFragmentTexture(_vita2d_context, 0, &texture->gxm_tex);
 
-	sceGxmSetVertexStream(context, 0, vertices);
-	sceGxmDraw(context, SCE_GXM_PRIMITIVE_TRIANGLE_STRIP, SCE_GXM_INDEX_FORMAT_U16, indices, 4);
+	sceGxmSetVertexStream(_vita2d_context, 0, vertices);
+	sceGxmDraw(_vita2d_context, SCE_GXM_PRIMITIVE_TRIANGLE_STRIP, SCE_GXM_INDEX_FORMAT_U16, indices, 4);
 }
 
 void vita2d_draw_texture_rotate_hotspot(const vita2d_texture *texture, float x, float y, float rad, float center_x, float center_y)
@@ -373,10 +373,10 @@ static inline void draw_texture_scale_generic(const vita2d_texture *texture, flo
 	indices[3] = 3;
 
 	// Set the texture to the TEXUNIT0
-	sceGxmSetFragmentTexture(context, 0, &texture->gxm_tex);
+	sceGxmSetFragmentTexture(_vita2d_context, 0, &texture->gxm_tex);
 
-	sceGxmSetVertexStream(context, 0, vertices);
-	sceGxmDraw(context, SCE_GXM_PRIMITIVE_TRIANGLE_STRIP, SCE_GXM_INDEX_FORMAT_U16, indices, 4);
+	sceGxmSetVertexStream(_vita2d_context, 0, vertices);
+	sceGxmDraw(_vita2d_context, SCE_GXM_PRIMITIVE_TRIANGLE_STRIP, SCE_GXM_INDEX_FORMAT_U16, indices, 4);
 }
 
 void vita2d_draw_texture_scale(const vita2d_texture *texture, float x, float y, float x_scale, float y_scale)
@@ -443,10 +443,10 @@ static inline void draw_texture_part_generic(const vita2d_texture *texture, floa
 	indices[3] = 3;
 
 	// Set the texture to the TEXUNIT0
-	sceGxmSetFragmentTexture(context, 0, &texture->gxm_tex);
+	sceGxmSetFragmentTexture(_vita2d_context, 0, &texture->gxm_tex);
 
-	sceGxmSetVertexStream(context, 0, vertices);
-	sceGxmDraw(context, SCE_GXM_PRIMITIVE_TRIANGLE_STRIP, SCE_GXM_INDEX_FORMAT_U16, indices, 4);
+	sceGxmSetVertexStream(_vita2d_context, 0, vertices);
+	sceGxmDraw(_vita2d_context, SCE_GXM_PRIMITIVE_TRIANGLE_STRIP, SCE_GXM_INDEX_FORMAT_U16, indices, 4);
 }
 
 void vita2d_draw_texture_part(const vita2d_texture *texture, float x, float y, float tex_x, float tex_y, float tex_w, float tex_h)
@@ -515,10 +515,10 @@ static inline void draw_texture_part_scale_generic(const vita2d_texture *texture
 	indices[3] = 3;
 
 	// Set the texture to the TEXUNIT0
-	sceGxmSetFragmentTexture(context, 0, &texture->gxm_tex);
+	sceGxmSetFragmentTexture(_vita2d_context, 0, &texture->gxm_tex);
 
-	sceGxmSetVertexStream(context, 0, vertices);
-	sceGxmDraw(context, SCE_GXM_PRIMITIVE_TRIANGLE_STRIP, SCE_GXM_INDEX_FORMAT_U16, indices, 4);
+	sceGxmSetVertexStream(_vita2d_context, 0, vertices);
+	sceGxmDraw(_vita2d_context, SCE_GXM_PRIMITIVE_TRIANGLE_STRIP, SCE_GXM_INDEX_FORMAT_U16, indices, 4);
 }
 
 void vita2d_draw_texture_part_scale(const vita2d_texture *texture, float x, float y, float tex_x, float tex_y, float tex_w, float tex_h, float x_scale, float y_scale)

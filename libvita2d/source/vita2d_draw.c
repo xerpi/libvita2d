@@ -19,17 +19,17 @@ void vita2d_draw_pixel(float x, float y, unsigned int color)
 
 	*index = 0;
 
-	sceGxmSetVertexProgram(context, colorVertexProgram);
-	sceGxmSetFragmentProgram(context, colorFragmentProgram);
+	sceGxmSetVertexProgram(_vita2d_context, colorVertexProgram);
+	sceGxmSetFragmentProgram(_vita2d_context, _vita2d_colorFragmentProgram);
 
 	void *vertexDefaultBuffer;
-	sceGxmReserveVertexDefaultUniformBuffer(context, &vertexDefaultBuffer);
-	sceGxmSetUniformDataF(vertexDefaultBuffer, colorWvpParam, 0, 16, ortho_matrix);
+	sceGxmReserveVertexDefaultUniformBuffer(_vita2d_context, &vertexDefaultBuffer);
+	sceGxmSetUniformDataF(vertexDefaultBuffer, _vita2d_colorWvpParam, 0, 16, _vita2d_ortho_matrix);
 
-	sceGxmSetVertexStream(context, 0, vertex);
-	sceGxmSetFrontPolygonMode(context, SCE_GXM_POLYGON_MODE_POINT);
-	sceGxmDraw(context, SCE_GXM_PRIMITIVE_POINTS, SCE_GXM_INDEX_FORMAT_U16, index, 1);
-	sceGxmSetFrontPolygonMode(context, SCE_GXM_POLYGON_MODE_TRIANGLE_FILL);
+	sceGxmSetVertexStream(_vita2d_context, 0, vertex);
+	sceGxmSetFrontPolygonMode(_vita2d_context, SCE_GXM_POLYGON_MODE_POINT);
+	sceGxmDraw(_vita2d_context, SCE_GXM_PRIMITIVE_POINTS, SCE_GXM_INDEX_FORMAT_U16, index, 1);
+	sceGxmSetFrontPolygonMode(_vita2d_context, SCE_GXM_POLYGON_MODE_TRIANGLE_FILL);
 }
 
 void vita2d_draw_line(float x0, float y0, float x1, float y1, unsigned int color)
@@ -55,17 +55,17 @@ void vita2d_draw_line(float x0, float y0, float x1, float y1, unsigned int color
 	indices[0] = 0;
 	indices[1] = 1;
 
-	sceGxmSetVertexProgram(context, colorVertexProgram);
-	sceGxmSetFragmentProgram(context, colorFragmentProgram);
+	sceGxmSetVertexProgram(_vita2d_context, colorVertexProgram);
+	sceGxmSetFragmentProgram(_vita2d_context, _vita2d_colorFragmentProgram);
 
 	void *vertexDefaultBuffer;
-	sceGxmReserveVertexDefaultUniformBuffer(context, &vertexDefaultBuffer);
-	sceGxmSetUniformDataF(vertexDefaultBuffer, colorWvpParam, 0, 16, ortho_matrix);
+	sceGxmReserveVertexDefaultUniformBuffer(_vita2d_context, &vertexDefaultBuffer);
+	sceGxmSetUniformDataF(vertexDefaultBuffer, _vita2d_colorWvpParam, 0, 16, _vita2d_ortho_matrix);
 
-	sceGxmSetVertexStream(context, 0, vertices);
-	sceGxmSetFrontPolygonMode(context, SCE_GXM_POLYGON_MODE_LINE);
-	sceGxmDraw(context, SCE_GXM_PRIMITIVE_LINES, SCE_GXM_INDEX_FORMAT_U16, indices, 2);
-	sceGxmSetFrontPolygonMode(context, SCE_GXM_POLYGON_MODE_TRIANGLE_FILL);
+	sceGxmSetVertexStream(_vita2d_context, 0, vertices);
+	sceGxmSetFrontPolygonMode(_vita2d_context, SCE_GXM_POLYGON_MODE_LINE);
+	sceGxmDraw(_vita2d_context, SCE_GXM_PRIMITIVE_LINES, SCE_GXM_INDEX_FORMAT_U16, indices, 2);
+	sceGxmSetFrontPolygonMode(_vita2d_context, SCE_GXM_POLYGON_MODE_TRIANGLE_FILL);
 }
 
 void vita2d_draw_rectangle(float x, float y, float w, float h, unsigned int color)
@@ -103,15 +103,15 @@ void vita2d_draw_rectangle(float x, float y, float w, float h, unsigned int colo
 	indices[2] = 2;
 	indices[3] = 3;
 
-	sceGxmSetVertexProgram(context, colorVertexProgram);
-	sceGxmSetFragmentProgram(context, colorFragmentProgram);
+	sceGxmSetVertexProgram(_vita2d_context, colorVertexProgram);
+	sceGxmSetFragmentProgram(_vita2d_context, _vita2d_colorFragmentProgram);
 
 	void *vertexDefaultBuffer;
-	sceGxmReserveVertexDefaultUniformBuffer(context, &vertexDefaultBuffer);
-	sceGxmSetUniformDataF(vertexDefaultBuffer, colorWvpParam, 0, 16, ortho_matrix);
+	sceGxmReserveVertexDefaultUniformBuffer(_vita2d_context, &vertexDefaultBuffer);
+	sceGxmSetUniformDataF(vertexDefaultBuffer, _vita2d_colorWvpParam, 0, 16, _vita2d_ortho_matrix);
 
-	sceGxmSetVertexStream(context, 0, vertices);
-	sceGxmDraw(context, SCE_GXM_PRIMITIVE_TRIANGLE_STRIP, SCE_GXM_INDEX_FORMAT_U16, indices, 4);
+	sceGxmSetVertexStream(_vita2d_context, 0, vertices);
+	sceGxmDraw(_vita2d_context, SCE_GXM_PRIMITIVE_TRIANGLE_STRIP, SCE_GXM_INDEX_FORMAT_U16, indices, 4);
 }
 
 void vita2d_draw_fill_circle(float x, float y, float radius, unsigned int color)
@@ -156,13 +156,13 @@ void vita2d_draw_fill_circle(float x, float y, float radius, unsigned int color)
 
 	indices[num_segments + 1] = 1;
 
-	sceGxmSetVertexProgram(context, colorVertexProgram);
-	sceGxmSetFragmentProgram(context, colorFragmentProgram);
+	sceGxmSetVertexProgram(_vita2d_context, colorVertexProgram);
+	sceGxmSetFragmentProgram(_vita2d_context, _vita2d_colorFragmentProgram);
 
 	void *vertexDefaultBuffer;
-	sceGxmReserveVertexDefaultUniformBuffer(context, &vertexDefaultBuffer);
-	sceGxmSetUniformDataF(vertexDefaultBuffer, colorWvpParam, 0, 16, ortho_matrix);
+	sceGxmReserveVertexDefaultUniformBuffer(_vita2d_context, &vertexDefaultBuffer);
+	sceGxmSetUniformDataF(vertexDefaultBuffer, _vita2d_colorWvpParam, 0, 16, _vita2d_ortho_matrix);
 
-	sceGxmSetVertexStream(context, 0, vertices);
-	sceGxmDraw(context, SCE_GXM_PRIMITIVE_TRIANGLE_FAN, SCE_GXM_INDEX_FORMAT_U16, indices, num_segments + 2);
+	sceGxmSetVertexStream(_vita2d_context, 0, vertices);
+	sceGxmDraw(_vita2d_context, SCE_GXM_PRIMITIVE_TRIANGLE_FAN, SCE_GXM_INDEX_FORMAT_U16, indices, num_segments + 2);
 }
