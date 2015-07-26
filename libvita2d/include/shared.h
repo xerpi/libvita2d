@@ -4,7 +4,7 @@
 /* Shared with other .c */
 extern float _vita2d_ortho_matrix[4*4];
 extern SceGxmContext *_vita2d_context;
-extern SceGxmVertexProgram *colorVertexProgram;
+extern SceGxmVertexProgram *_vita2d_colorVertexProgram;
 extern SceGxmFragmentProgram *_vita2d_colorFragmentProgram;
 extern SceGxmVertexProgram *_vita2d_textureVertexProgram;
 extern SceGxmFragmentProgram *_vita2d_textureFragmentProgram;

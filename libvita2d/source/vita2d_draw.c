@@ -19,7 +19,7 @@ void vita2d_draw_pixel(float x, float y, unsigned int color)
 
 	*index = 0;
 
-	sceGxmSetVertexProgram(_vita2d_context, colorVertexProgram);
+	sceGxmSetVertexProgram(_vita2d_context, _vita2d_colorVertexProgram);
 	sceGxmSetFragmentProgram(_vita2d_context, _vita2d_colorFragmentProgram);
 
 	void *vertexDefaultBuffer;
@@ -55,7 +55,7 @@ void vita2d_draw_line(float x0, float y0, float x1, float y1, unsigned int color
 	indices[0] = 0;
 	indices[1] = 1;
 
-	sceGxmSetVertexProgram(_vita2d_context, colorVertexProgram);
+	sceGxmSetVertexProgram(_vita2d_context, _vita2d_colorVertexProgram);
 	sceGxmSetFragmentProgram(_vita2d_context, _vita2d_colorFragmentProgram);
 
 	void *vertexDefaultBuffer;
@@ -103,7 +103,7 @@ void vita2d_draw_rectangle(float x, float y, float w, float h, unsigned int colo
 	indices[2] = 2;
 	indices[3] = 3;
 
-	sceGxmSetVertexProgram(_vita2d_context, colorVertexProgram);
+	sceGxmSetVertexProgram(_vita2d_context, _vita2d_colorVertexProgram);
 	sceGxmSetFragmentProgram(_vita2d_context, _vita2d_colorFragmentProgram);
 
 	void *vertexDefaultBuffer;
@@ -156,7 +156,7 @@ void vita2d_draw_fill_circle(float x, float y, float radius, unsigned int color)
 
 	indices[num_segments + 1] = 1;
 
-	sceGxmSetVertexProgram(_vita2d_context, colorVertexProgram);
+	sceGxmSetVertexProgram(_vita2d_context, _vita2d_colorVertexProgram);
 	sceGxmSetFragmentProgram(_vita2d_context, _vita2d_colorFragmentProgram);
 
 	void *vertexDefaultBuffer;
