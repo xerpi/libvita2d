@@ -125,7 +125,7 @@ static int atlas_add_glyph(texture_atlas *atlas, unsigned int glyph_index, const
 	return ret;
 }
 
-void vita2d_draw_text(vita2d_font *font, int x, int y, unsigned int color, unsigned int size, const char *text)
+void vita2d_font_draw_text(vita2d_font *font, int x, int y, unsigned int color, unsigned int size, const char *text)
 {
 	FT_Face face = font->face;
 	FT_GlyphSlot slot = face->glyph;
@@ -176,14 +176,14 @@ void vita2d_draw_text(vita2d_font *font, int x, int y, unsigned int color, unsig
 	}
 }
 
-void vita2d_draw_textf(vita2d_font *font, int x, int y, unsigned int color, unsigned int size, const char *text, ...)
+void vita2d_font_draw_textf(vita2d_font *font, int x, int y, unsigned int color, unsigned int size, const char *text, ...)
 {
 	char buf[1024];
 	va_list argptr;
 	va_start(argptr, text);
 	vsnprintf(buf, sizeof(buf), text, argptr);
 	va_end(argptr);
-	vita2d_draw_text(font, x, y, color, size, buf);
+	vita2d_font_draw_text(font, x, y, color, size, buf);
 }
 
 void vita2d_font_text_dimensions(vita2d_font *font, unsigned int size, const char *text, int *width, int *height)
