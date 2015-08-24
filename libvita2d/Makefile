@@ -9,10 +9,10 @@ SHADERS    = shader/compiled/clear_v_gxp.o shader/compiled/clear_f_gxp.o \
              shader/compiled/texture_v_gxp.o shader/compiled/texture_f_gxp.o \
              shader/compiled/texture_tint_f_gxp.o
 
-PREFIX  = $(DEVKITARM)/bin/arm-none-eabi
+PREFIX  = arm-vita-eabi
 CC      = $(PREFIX)-gcc
 AR      = $(PREFIX)-ar
-CFLAGS  = -Wall -specs=psp2.specs -I$(INCLUDES) -I$(PSP2SDK)/include/freetype2
+CFLAGS  = -Wl,-q -Wall -O3 -I$(INCLUDES) -I$(PSP2SDK)/include/freetype2
 ASFLAGS = $(CFLAGS)
 
 all: $(TARGET_LIB)
@@ -27,6 +27,6 @@ clean:
 	@rm -rf $(TARGET_LIB) $(OBJS)
 
 install: $(TARGET_LIB)
-	@cp $(TARGET_LIB) $(PSP2SDK)/lib
-	@cp include/vita2d.h $(PSP2SDK)/include
+	@cp $(TARGET_LIB) $(VITASDK)/arm-vita-eabi/lib
+	@cp include/vita2d.h $(VITASDK)/arm-vita-eabi/include
 	@echo "Installed!"

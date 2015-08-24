@@ -29,7 +29,7 @@ void texture_atlas_free(texture_atlas *atlas)
 	free(atlas);
 }
 
-int texture_atlas_insert(texture_atlas *atlas, unsigned int character, const void *image, int width, int height, int bitmap_left, int bitmap_top, int advance_x, int advance_y)
+int texture_atlas_insert(texture_atlas *atlas, unsigned int character, const void *image, int width, int height, int bitmap_left, int bitmap_top, int advance_x, int advance_y, int glyph_size)
 {
 	bp2d_size size;
 	size.w = width;
@@ -49,6 +49,7 @@ int texture_atlas_insert(texture_atlas *atlas, unsigned int character, const voi
 	entry->bitmap_top = bitmap_top;
 	entry->advance_x = advance_x;
 	entry->advance_y = advance_y;
+	entry->glyph_size = glyph_size;
 
 	int_htab_insert(atlas->htab, character, entry);
 
@@ -68,7 +69,7 @@ int texture_atlas_exists(texture_atlas *atlas, unsigned int character)
 	return int_htab_find(atlas->htab, character) != NULL;
 }
 
-void texture_atlas_get(texture_atlas *atlas, unsigned int character, bp2d_rectangle *rect, int *bitmap_left, int *bitmap_top, int *advance_x, int *advance_y)
+void texture_atlas_get(texture_atlas *atlas, unsigned int character, bp2d_rectangle *rect, int *bitmap_left, int *bitmap_top, int *advance_x, int *advance_y, int *glyph_size)
 {
 	atlas_htab_entry *entry = int_htab_find(atlas->htab, character);
 
@@ -80,4 +81,5 @@ void texture_atlas_get(texture_atlas *atlas, unsigned int character, bp2d_rectan
 	*bitmap_top = entry->bitmap_top;
 	*advance_x = entry->advance_x;
 	*advance_y = entry->advance_y;
+	*glyph_size = entry->glyph_size;
 }
