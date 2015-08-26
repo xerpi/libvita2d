@@ -736,6 +736,11 @@ void *vita2d_get_current_fb()
 	return displayBufferData[frontBufferIndex];
 }
 
+void vita2d_set_region_clip(SceGxmRegionClipMode mode, unsigned int x_min, unsigned int y_min, unsigned int x_max, unsigned int y_max)
+{
+	sceGxmSetRegionClip(_vita2d_context, mode, x_min, y_min, x_max, y_max);
+}
+
 void *vita2d_pool_malloc(unsigned int size)
 {
 	if ((pool_index + size) < pool_size) {
