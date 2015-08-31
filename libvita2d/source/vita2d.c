@@ -661,6 +661,8 @@ int vita2d_fini()
 	// terminate libgxm
 	sceGxmTerminate();
 
+	vita2d_initialized = 0;
+
 	return 1;
 }
 
