@@ -12,7 +12,7 @@ LIBS = -lvita2d -lSceKernel_stub -lSceDisplay_stub -lSceGxm_stub \
 
 PREFIX  = arm-vita-eabi
 CC      = $(PREFIX)-gcc
-CFLAGS  = -Wl,-q -Wall -O3 -I$(VITASDK)/include -L$(VITASDK)/lib
+CFLAGS  = -Wl,-q -Wall -O3
 ASFLAGS = $(CFLAGS)
 
 all: $(TARGET).velf
