@@ -190,7 +190,7 @@ static int atlas_add_glyph(texture_atlas *atlas, unsigned int glyph_index, const
 	return ret;
 }
 
-void vita2d_font_draw_text(vita2d_font *font, int x, int y, unsigned int color, unsigned int size, const char *text)
+int vita2d_font_draw_text(vita2d_font *font, int x, int y, unsigned int color, unsigned int size, const char *text)
 {
 	FTC_FaceID face_id = (FTC_FaceID)font;
 	FT_Face face;
@@ -213,7 +213,20 @@ void vita2d_font_draw_text(vita2d_font *font, int x, int y, unsigned int color, 
 
 	FT_ULong flags = FT_LOAD_RENDER | FT_LOAD_TARGET_NORMAL;
 
+	int max = 0;
+
 	while (*text) {
+
+		if (*text == '\n')
+		{
+			if((pen_x-x)>max)
+				max = pen_x-x;
+			pen_x = x;
+			pen_y += size;
+			text++;
+			continue;
+		}
+
 		glyph_index = FTC_CMapCache_Lookup(font->cmapcache, (FTC_FaceID)font, charmap_index, *text);
 
 		if (use_kerning && previous && glyph_index) {
@@ -255,6 +268,10 @@ void vita2d_font_draw_text(vita2d_font *font, int x, int y, unsigned int color, 
 		previous = glyph_index;
 		text++;
 	}
+	if((pen_x-x)>max)
+		max = pen_x-x;
+
+	return max;
 }
 
 void vita2d_font_draw_textf(vita2d_font *font, int x, int y, unsigned int color, unsigned int size, const char *text, ...)
@@ -279,8 +296,9 @@ void vita2d_font_text_dimensions(vita2d_font *font, unsigned int size, const cha
 	FT_Glyph glyph;
 	FT_Bool use_kerning = FT_HAS_KERNING(face);
 	FT_UInt glyph_index, previous = 0;
+
 	int pen_x = 0;
-	int pen_y = 0;
+	int pen_y = size >> 1;
 
 	FTC_ScalerRec scaler;
 	scaler.face_id = face_id;
@@ -290,7 +308,19 @@ void vita2d_font_text_dimensions(vita2d_font *font, unsigned int size, const cha
 
 	FT_ULong flags = FT_LOAD_RENDER | FT_LOAD_TARGET_NORMAL;
 
+	int max = 0;
+
+
 	while (*text) {
+		if (*text == '\n')
+		{
+			if(pen_x>max)
+				max = pen_x;
+			pen_x = 0;
+			pen_y += size;
+			text++;
+			continue;
+		}
 		glyph_index = FTC_CMapCache_Lookup(font->cmapcache, (FTC_FaceID)font, charmap_index, *text);
 
 		if (use_kerning && previous && glyph_index) {
@@ -304,15 +334,17 @@ void vita2d_font_text_dimensions(vita2d_font *font, unsigned int size, const cha
 		const FT_BitmapGlyph bitmap_glyph = (FT_BitmapGlyph)glyph;
 
 		pen_x += bitmap_glyph->root.advance.x >> 16;
-		pen_y += bitmap_glyph->root.advance.y >> 16;
+		//pen_y += bitmap_glyph->root.advance.y >> 16;
 
 		previous = glyph_index;
 		text++;
 	}
+	if(pen_x>max)
+		max = pen_x;
 	if (width)
-		*width = pen_x;
+		*width = max;
 	if (height)
-		*height = size + pen_y;
+		*height = size + pen_y ;
 }
 
 int vita2d_font_text_width(vita2d_font *font, unsigned int size, const char *text)
@@ -324,5 +356,7 @@ int vita2d_font_text_width(vita2d_font *font, unsigned int size, const char *tex
 
 int vita2d_font_text_height(vita2d_font *font, unsigned int size, const char *text)
 {
-	return size;
+	int height;
+	vita2d_font_text_dimensions(font, size, text, NULL, &height);
+	return height;
 }
