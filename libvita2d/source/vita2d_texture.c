@@ -141,6 +141,15 @@ void *vita2d_texture_get_palette(const vita2d_texture *texture)
 	return sceGxmTextureGetPalette(&texture->gxm_tex);
 }
 
+SceGxmTextureFilter vita2d_texture_get_texture_filter(const vita2d_texture *texture){
+	return sceGxmTextureGetMinFilter(&texture->gxm_tex);
+}
+
+void vita2d_texture_set_texture_filter(vita2d_texture *texture, SceGxmTextureFilter texture_filter){
+	sceGxmTextureSetMinFilter(&texture->gxm_tex,texture_filter);
+	sceGxmTextureSetMagFilter(&texture->gxm_tex,texture_filter);
+}
+
 static inline void set_texture_program()
 {
 	sceGxmSetVertexProgram(_vita2d_context, _vita2d_textureVertexProgram);

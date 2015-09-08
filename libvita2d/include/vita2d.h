@@ -75,6 +75,8 @@ unsigned int vita2d_texture_get_stride(const vita2d_texture *texture);
 SceGxmTextureFormat vita2d_texture_get_format(const vita2d_texture *texture);
 void *vita2d_texture_get_datap(const vita2d_texture *texture);
 void *vita2d_texture_get_palette(const vita2d_texture *texture);
+void vita2d_texture_set_texture_filter(vita2d_texture *texture, SceGxmTextureFilter texture_filter);
+SceGxmTextureFilter vita2d_texture_get_texture_filter(const vita2d_texture *texture);
 
 void vita2d_draw_texture(const vita2d_texture *texture, float x, float y);
 void vita2d_draw_texture_rotate(const vita2d_texture *texture, float x, float y, float rad);
