@@ -69,7 +69,7 @@ static SceGxmColorSurface displaySurface[DISPLAY_BUFFER_COUNT];
 static SceGxmSyncObject *displayBufferSync[DISPLAY_BUFFER_COUNT];
 static SceUID depthBufferUid;
 static SceGxmDepthStencilSurface depthSurface;
-static void *depthBufferData;
+static void *depthBufferData = NULL;
 
 static unsigned int backBufferIndex = 0;
 static unsigned int frontBufferIndex = 0;
