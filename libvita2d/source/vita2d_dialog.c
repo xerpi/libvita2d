@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -10,6 +11,11 @@
 #else
 #  define DEBUG(...)
 #endif
+
+#define true 1
+#define false 0
+
+static bool		Running;
 
 void render_dialog();
 
@@ -24,6 +30,8 @@ int vita2d_dialog_init()
 	memset(&bootParam, 0 ,sizeof(SceAppUtilBootParam));
 	err = sceAppUtilInit(&initParam, &bootParam);
 	DEBUG("sceAppUtilInit(): 0x%08X\n", err);
+
+	Running = true;
 
 	return 0;
 }
@@ -67,6 +75,8 @@ int dialog_check()
 	err = sceMsgDialogTerm();
 	DEBUG("sceMsgDialogTerm(): 0x%08X\n", err);
 
+	Running = false;
+
 	return 0;
 }
 
@@ -91,7 +101,7 @@ int vita2d_dialog_draw(int type, const char *str)
 	err = sceMsgDialogInit(&msgParam);
 	DEBUG("sceMsgDialogInit(): 0x%08X\n", err);
 
-	while (1) {
+	while (Running) {
 		vita2d_start_drawing();
 		vita2d_clear_screen();
 		vita2d_end_drawing();
