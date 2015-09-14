@@ -77,6 +77,8 @@ unsigned int vita2d_texture_get_stride(const vita2d_texture *texture);
 SceGxmTextureFormat vita2d_texture_get_format(const vita2d_texture *texture);
 void *vita2d_texture_get_datap(const vita2d_texture *texture);
 void *vita2d_texture_get_palette(const vita2d_texture *texture);
+void vita2d_texture_set_texture_filter(vita2d_texture *texture, SceGxmTextureFilter texture_filter);
+SceGxmTextureFilter vita2d_texture_get_texture_filter(const vita2d_texture *texture);
 
 void vita2d_draw_texture(const vita2d_texture *texture, float x, float y);
 void vita2d_draw_texture_rotate(const vita2d_texture *texture, float x, float y, float rad);
@@ -84,6 +86,7 @@ void vita2d_draw_texture_rotate_hotspot(const vita2d_texture *texture, float x, 
 void vita2d_draw_texture_scale(const vita2d_texture *texture, float x, float y, float x_scale, float y_scale);
 void vita2d_draw_texture_part(const vita2d_texture *texture, float x, float y, float tex_x, float tex_y, float tex_w, float tex_h);
 void vita2d_draw_texture_part_scale(const vita2d_texture *texture, float x, float y, float tex_x, float tex_y, float tex_w, float tex_h, float x_scale, float y_scale);
+void vita2d_draw_texture_scale_rotate(const vita2d_texture *texture, float x, float y, float x_scale, float y_scale, float rad);
 
 void vita2d_draw_texture_tint(const vita2d_texture *texture, float x, float y, unsigned int color);
 void vita2d_draw_texture_tint_rotate(const vita2d_texture *texture, float x, float y, float rad, unsigned int color);
@@ -104,7 +107,7 @@ vita2d_texture *vita2d_load_BMP_buffer(const void *buffer);
 vita2d_font *vita2d_load_font_file(const char *filename);
 vita2d_font *vita2d_load_font_mem(const void *buffer, unsigned int size);
 void vita2d_free_font(vita2d_font *font);
-void vita2d_font_draw_text(vita2d_font *font, int x, int y, unsigned int color, unsigned int size, const char *text);
+int vita2d_font_draw_text(vita2d_font *font, int x, int y, unsigned int color, unsigned int size, const char *text);
 void vita2d_font_draw_textf(vita2d_font *font, int x, int y, unsigned int color, unsigned int size, const char *text, ...);
 void vita2d_font_text_dimensions(vita2d_font *font, unsigned int size, const char *text, int *width, int *height);
 int vita2d_font_text_width(vita2d_font *font, unsigned int size, const char *text);
