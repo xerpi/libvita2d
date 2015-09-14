@@ -43,7 +43,7 @@ int dialog_check()
 	SceCommonDialogStatus	msgStatus;
 	SceMsgDialogResult		msgResult;
 
-	int		res;
+	int		err;
 
 	msgStatus = sceMsgDialogGetStatus();
 
@@ -57,24 +57,17 @@ int dialog_check()
 	}
 
 	memset(&msgResult, 0, sizeof(SceMsgDialogResult));
-	res = sceMsgDialogGetResult(&msgResult);
-	if (res != 0) {
-		printf("ERROR: sceMsgDialogGetResult = 0x%08X\n", res);
-		return res;
-	}
+	err = sceMsgDialogGetResult(&msgResult);
+	DEBUG("sceMsgDialogGetResult(): 0x%08X\n", err);
 
 	if (msgResult.result < 0) {
-		printf("ERROR: SceMsgDialogResult.result = 0x%08x\n", msgResult.result);
-		return res;
+		DEBUG("sceMsgDialogResult.result: 0x%08X\n", err);
 	}
 
-	res = sceMsgDialogTerm();
-	if (res != 0) {
-		printf("ERROR: sceMsgDialogTerm = 0x%08x\n", res);
-		return res;
-	}
+	err = sceMsgDialogTerm();
+	DEBUG("sceMsgDialogTerm(): 0x%08X\n", err);
 
-	return res;
+	return 0;
 }
 
 int vita2d_dialog_draw(int type, const char *str)
@@ -103,8 +96,8 @@ int vita2d_dialog_draw(int type, const char *str)
 		vita2d_clear_screen();
 		vita2d_end_drawing();
 		render_dialog();
-		dialog_check();
 		vita2d_swap_buffers();
+		dialog_check();
 	}
 
 	return 0;

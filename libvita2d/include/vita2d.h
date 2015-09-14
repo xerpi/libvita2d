@@ -113,6 +113,7 @@ int vita2d_font_text_width(vita2d_font *font, unsigned int size, const char *tex
 int vita2d_font_text_height(vita2d_font *font, unsigned int size, const char *text);
 
 int vita2d_dialog_init();
+int vita2d_dialog_shutdown();
 int vita2d_dialog_draw(int type, const char *str);
 
 
