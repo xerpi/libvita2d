@@ -141,13 +141,20 @@ void *vita2d_texture_get_palette(const vita2d_texture *texture)
 	return sceGxmTextureGetPalette(&texture->gxm_tex);
 }
 
-SceGxmTextureFilter vita2d_texture_get_texture_filter(const vita2d_texture *texture){
+SceGxmTextureFilter vita2d_texture_get_min_filter(const vita2d_texture *texture)
+{
 	return sceGxmTextureGetMinFilter(&texture->gxm_tex);
 }
 
-void vita2d_texture_set_texture_filter(vita2d_texture *texture, SceGxmTextureFilter texture_filter){
-	sceGxmTextureSetMinFilter(&texture->gxm_tex,texture_filter);
-	sceGxmTextureSetMagFilter(&texture->gxm_tex,texture_filter);
+SceGxmTextureFilter vita2d_texture_get_mag_filter(const vita2d_texture *texture)
+{
+	return sceGxmTextureGetMagFilter(&texture->gxm_tex);
+}
+
+void vita2d_texture_set_filters(vita2d_texture *texture, SceGxmTextureFilter min_filter, SceGxmTextureFilter mag_filter)
+{
+	sceGxmTextureSetMinFilter(&texture->gxm_tex, min_filter);
+	sceGxmTextureSetMagFilter(&texture->gxm_tex, mag_filter);
 }
 
 static inline void set_texture_program()
@@ -560,7 +567,6 @@ static inline void draw_texture_scale_rotate_hotspot_generic(const vita2d_textur
 	const float center_x_scaled = x_scale * center_x;
 	const float center_y_scaled = y_scale * center_y;
 
-
 	vertices[0].x = -center_x_scaled;
 	vertices[0].y = -center_y_scaled;
 	vertices[0].z = +0.5f;
@@ -607,10 +613,21 @@ static inline void draw_texture_scale_rotate_hotspot_generic(const vita2d_textur
 	sceGxmDraw(_vita2d_context, SCE_GXM_PRIMITIVE_TRIANGLE_STRIP, SCE_GXM_INDEX_FORMAT_U16, indices, 4);
 }
 
-void vita2d_draw_texture_scale_rotate(const vita2d_texture *texture, float x, float y, float x_scale, float y_scale, float rad){
-		set_texture_program();
-		set_texture_wvp_uniform();
-		draw_texture_scale_rotate_hotspot_generic(texture, x, y, x_scale, y_scale,
-			rad, vita2d_texture_get_width(texture)/2.0f,
-			vita2d_texture_get_height(texture)/2.0f);
+void vita2d_draw_texture_scale_rotate(const vita2d_texture *texture, float x, float y, float x_scale, float y_scale, float rad)
+{
+	set_texture_program();
+	set_texture_wvp_uniform();
+	draw_texture_scale_rotate_hotspot_generic(texture, x, y, x_scale, y_scale,
+		rad, vita2d_texture_get_width(texture)/2.0f,
+		vita2d_texture_get_height(texture)/2.0f);
+}
+
+void vita2d_draw_texture_tint_scale_rotate(const vita2d_texture *texture, float x, float y, float x_scale, float y_scale, float rad, unsigned int color)
+{
+	set_texture_tint_program();
+	set_texture_wvp_uniform();
+	set_texture_tint_color_uniform(color);
+	draw_texture_scale_rotate_hotspot_generic(texture, x, y, x_scale, y_scale,
+		rad, vita2d_texture_get_width(texture)/2.0f,
+		vita2d_texture_get_height(texture)/2.0f);
 }

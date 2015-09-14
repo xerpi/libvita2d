@@ -77,8 +77,9 @@ unsigned int vita2d_texture_get_stride(const vita2d_texture *texture);
 SceGxmTextureFormat vita2d_texture_get_format(const vita2d_texture *texture);
 void *vita2d_texture_get_datap(const vita2d_texture *texture);
 void *vita2d_texture_get_palette(const vita2d_texture *texture);
-void vita2d_texture_set_texture_filter(vita2d_texture *texture, SceGxmTextureFilter texture_filter);
-SceGxmTextureFilter vita2d_texture_get_texture_filter(const vita2d_texture *texture);
+SceGxmTextureFilter vita2d_texture_get_min_filter(const vita2d_texture *texture);
+SceGxmTextureFilter vita2d_texture_get_mag_filter(const vita2d_texture *texture);
+void vita2d_texture_set_filters(vita2d_texture *texture, SceGxmTextureFilter min_filter, SceGxmTextureFilter mag_filter);
 
 void vita2d_draw_texture(const vita2d_texture *texture, float x, float y);
 void vita2d_draw_texture_rotate(const vita2d_texture *texture, float x, float y, float rad);
@@ -94,6 +95,7 @@ void vita2d_draw_texture_tint_rotate_hotspot(const vita2d_texture *texture, floa
 void vita2d_draw_texture_tint_scale(const vita2d_texture *texture, float x, float y, float x_scale, float y_scale, unsigned int color);
 void vita2d_draw_texture_tint_part(const vita2d_texture *texture, float x, float y, float tex_x, float tex_y, float tex_w, float tex_h, unsigned int color);
 void vita2d_draw_texture_tint_part_scale(const vita2d_texture *texture, float x, float y, float tex_x, float tex_y, float tex_w, float tex_h, float x_scale, float y_scale, unsigned int color);
+void vita2d_draw_texture_tint_scale_rotate(const vita2d_texture *texture, float x, float y, float x_scale, float y_scale, float rad, unsigned int color);
 
 vita2d_texture *vita2d_load_PNG_file(const char *filename);
 vita2d_texture *vita2d_load_PNG_buffer(const void *buffer);

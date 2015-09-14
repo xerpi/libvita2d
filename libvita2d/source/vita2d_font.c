@@ -217,9 +217,8 @@ int vita2d_font_draw_text(vita2d_font *font, int x, int y, unsigned int color, u
 
 	while (*text) {
 
-		if (*text == '\n')
-		{
-			if((pen_x-x)>max)
+		if (*text == '\n') {
+			if ((pen_x - x) > max)
 				max = pen_x-x;
 			pen_x = x;
 			pen_y += size;
@@ -268,7 +267,7 @@ int vita2d_font_draw_text(vita2d_font *font, int x, int y, unsigned int color, u
 		previous = glyph_index;
 		text++;
 	}
-	if((pen_x-x)>max)
+	if ((pen_x - x) > max)
 		max = pen_x-x;
 
 	return max;
@@ -310,11 +309,9 @@ void vita2d_font_text_dimensions(vita2d_font *font, unsigned int size, const cha
 
 	int max = 0;
 
-
 	while (*text) {
-		if (*text == '\n')
-		{
-			if(pen_x>max)
+		if (*text == '\n') {
+			if (pen_x > max)
 				max = pen_x;
 			pen_x = 0;
 			pen_y += size;
@@ -339,12 +336,12 @@ void vita2d_font_text_dimensions(vita2d_font *font, unsigned int size, const cha
 		previous = glyph_index;
 		text++;
 	}
-	if(pen_x>max)
+	if(pen_x > max)
 		max = pen_x;
 	if (width)
 		*width = max;
 	if (height)
-		*height = size + pen_y ;
+		*height = size + pen_y;
 }
 
 int vita2d_font_text_width(vita2d_font *font, unsigned int size, const char *text)
