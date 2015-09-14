@@ -4,6 +4,7 @@
 #include <psp2/gxm.h>
 #include <psp2/types.h>
 #include <psp2/kernel/sysmem.h>
+#include <psp2/message_dialog.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -110,6 +111,9 @@ void vita2d_font_draw_textf(vita2d_font *font, int x, int y, unsigned int color,
 void vita2d_font_text_dimensions(vita2d_font *font, unsigned int size, const char *text, int *width, int *height);
 int vita2d_font_text_width(vita2d_font *font, unsigned int size, const char *text);
 int vita2d_font_text_height(vita2d_font *font, unsigned int size, const char *text);
+
+int vita2d_dialog_init();
+int vita2d_dialog_draw(int type, const char *str);
 
 
 #ifdef __cplusplus

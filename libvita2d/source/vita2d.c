@@ -68,6 +68,7 @@ static SceGxmColorSurface displaySurface[DISPLAY_BUFFER_COUNT];
 static SceGxmSyncObject *displayBufferSync[DISPLAY_BUFFER_COUNT];
 static SceUID depthBufferUid;
 static SceGxmDepthStencilSurface depthSurface;
+static void *depthBufferData;
 
 static unsigned int backBufferIndex = 0;
 static unsigned int frontBufferIndex = 0;
@@ -141,6 +142,24 @@ static void display_callback(const void *callback_data)
 	if (vblank_wait) {
 		sceDisplayWaitVblankStart();
 	}
+}
+
+void render_dialog()
+{
+	SceCommonDialogUpdateParam	updateParam;
+
+	memset(&updateParam, 0, sizeof(updateParam));
+	updateParam.renderTarget.colorFormat    = SCE_GXM_COLOR_FORMAT_A8B8G8R8;
+	updateParam.renderTarget.surfaceType    = SCE_GXM_COLOR_SURFACE_LINEAR;
+	updateParam.renderTarget.width          = DISPLAY_WIDTH;
+	updateParam.renderTarget.height         = DISPLAY_HEIGHT;
+	updateParam.renderTarget.strideInPixels = DISPLAY_STRIDE_IN_PIXELS;
+
+	updateParam.renderTarget.colorSurfaceData = displayBufferData[backBufferIndex];
+	updateParam.renderTarget.depthSurfaceData = depthBufferData;
+	updateParam.displaySyncObject = displayBufferSync[backBufferIndex];
+
+	sceCommonDialogUpdate(&updateParam);
 }
 
 int vita2d_init()
@@ -278,7 +297,7 @@ int vita2d_init_advanced(unsigned int temp_pool_size)
 	}
 
 	// allocate the depth buffer
-	void *depthBufferData = gpu_alloc(
+	depthBufferData = gpu_alloc(
 		SCE_KERNEL_MEMBLOCK_TYPE_USER_RW_UNCACHE,
 		4*sampleCount,
 		SCE_GXM_DEPTHSTENCIL_SURFACE_ALIGNMENT,
