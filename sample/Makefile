@@ -4,7 +4,7 @@
 #
 
 TARGET = vita2dsample
-OBJS   = main.o
+OBJS   = main.o font.o font_data.o
 
 LIBS = -lvita2d -lSceKernel_stub -lSceDisplay_stub -lSceGxm_stub \
 	-lSceSysmodule_stub -lSceCtrl_stub -lScePgf_stub \

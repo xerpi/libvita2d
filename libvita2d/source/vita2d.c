@@ -2,6 +2,7 @@
 #include <psp2/gxm.h>
 #include <psp2/types.h>
 #include <psp2/kernel/sysmem.h>
+#include <psp2/message_dialog.h>
 #include <string.h>
 #include <stdlib.h>
 #include "vita2d.h"
@@ -68,6 +69,7 @@ static SceGxmColorSurface displaySurface[DISPLAY_BUFFER_COUNT];
 static SceGxmSyncObject *displayBufferSync[DISPLAY_BUFFER_COUNT];
 static SceUID depthBufferUid;
 static SceGxmDepthStencilSurface depthSurface;
+static void *depthBufferData;
 
 static unsigned int backBufferIndex = 0;
 static unsigned int frontBufferIndex = 0;
@@ -278,7 +280,7 @@ int vita2d_init_advanced(unsigned int temp_pool_size)
 	}
 
 	// allocate the depth buffer
-	void *depthBufferData = gpu_alloc(
+	depthBufferData = gpu_alloc(
 		SCE_KERNEL_MEMBLOCK_TYPE_USER_RW_UNCACHE,
 		4*sampleCount,
 		SCE_GXM_DEPTHSTENCIL_SURFACE_ALIGNMENT,
@@ -631,6 +633,9 @@ int vita2d_fini()
 		sceGxmSyncObjectDestroy(displayBufferSync[i]);
 	}
 
+	// free the depth buffer
+	gpu_free(depthBufferUid);
+
 	// unregister programs and destroy shader patcher
 	sceGxmShaderPatcherUnregisterProgram(shaderPatcher, clearFragmentProgramId);
 	sceGxmShaderPatcherUnregisterProgram(shaderPatcher, clearVertexProgramId);
@@ -718,6 +723,24 @@ void vita2d_start_drawing()
 void vita2d_end_drawing()
 {
 	sceGxmEndScene(_vita2d_context, NULL, NULL);
+}
+
+int vita2d_common_dialog_update()
+{
+	SceCommonDialogUpdateParam updateParam;
+	memset(&updateParam, 0, sizeof(updateParam));
+
+	updateParam.renderTarget.colorFormat    = DISPLAY_COLOR_FORMAT;
+	updateParam.renderTarget.surfaceType    = SCE_GXM_COLOR_SURFACE_LINEAR;
+	updateParam.renderTarget.width          = DISPLAY_WIDTH;
+	updateParam.renderTarget.height         = DISPLAY_HEIGHT;
+	updateParam.renderTarget.strideInPixels = DISPLAY_STRIDE_IN_PIXELS;
+
+	updateParam.renderTarget.colorSurfaceData = displayBufferData[backBufferIndex];
+	updateParam.renderTarget.depthSurfaceData = depthBufferData;
+	updateParam.displaySyncObject = displayBufferSync[backBufferIndex];
+
+	return sceCommonDialogUpdate(&updateParam);
 }
 
 void vita2d_set_clear_color(unsigned int color)
