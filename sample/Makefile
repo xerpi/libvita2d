@@ -6,8 +6,8 @@
 TARGET = vita2dsample
 OBJS   = main.o
 
-LIBS = -lvita2d -lSceKernel_stub -lSceDisplay_stub -lSceGxm_stub \
-	-lSceSysmodule_stub -lSceCtrl_stub -lScePgf_stub \
+LIBS = -lUVLoader_stub -lvita2d -lSceKernel_stub -lSceDisplay_stub -lSceGxm_stub \
+	-lSceSysmodule_stub -lSceCtrl_stub -lSceCommonDialog_stub -lSceAppUtil_stub -lScePgf_stub \
 	-lpng -ljpeg -lfreetype -lz -lm -lc
 
 PREFIX  = arm-vita-eabi
@@ -19,7 +19,7 @@ all: $(TARGET).velf
 
 %.velf: %.elf
 	$(PREFIX)-strip -g $<
-	vita-elf-create $< $@ $(VITASDK)/bin/db.json
+	vita-elf-create $< $@ $(VITASDK)/bin/db.json $(VITASDK)/bin/extra.json
 
 $(TARGET).elf: $(OBJS)
 	$(CC) $(CFLAGS) $^ $(LIBS) -o $@
