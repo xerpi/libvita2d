@@ -17,7 +17,10 @@ PSP2_MODULE_INFO(0, 0, "vita2dsample");
 int main()
 {
 	vita2d_init();
+	vita2d_dialog_init();
 	vita2d_set_clear_color(RGBA8(0x40, 0x40, 0x40, 0xFF));
+
+	vita2d_dialog_draw(SCE_MSG_DIALOG_BUTTON_TYPE_OK, "This is a dialog message.");
 
 	vita2d_texture *tex = vita2d_create_empty_texture(128, 128);
 	unsigned int *tex_data = vita2d_texture_get_datap(tex);
@@ -56,6 +59,7 @@ int main()
 		rad += 0.1f;
 	}
 
+	vita2d_dialog_shutdown();
 	vita2d_fini();
 	vita2d_free_texture(tex);
 
