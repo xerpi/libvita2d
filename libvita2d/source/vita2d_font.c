@@ -150,6 +150,7 @@ void vita2d_free_font(vita2d_font *font)
 	if (font) {
 		FTC_FaceID face_id = (FTC_FaceID)font;
 		FTC_Manager_RemoveFaceID(font->ftcmanager, face_id);
+		FTC_Manager_Done(font->ftcmanager);
 		if (font->load_from == VITA2D_LOAD_FROM_FILE) {
 			free(font->filename);
 		}
