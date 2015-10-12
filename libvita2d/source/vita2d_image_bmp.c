@@ -114,7 +114,7 @@ static void _vita2d_read_bmp_buffer_read_fn(void *user_data, void *buffer, unsig
 vita2d_texture *vita2d_load_BMP_file(const char *filename)
 {
 	SceUID fd;
-	if ((fd = sceIoOpen(filename, PSP2_O_RDONLY, 0777)) < 0) {
+	if ((fd = sceIoOpen(filename, SCE_O_RDONLY, 0777)) < 0) {
 		goto exit_error;
 	}
 

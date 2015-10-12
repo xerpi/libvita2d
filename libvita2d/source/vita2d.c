@@ -21,7 +21,7 @@
 #define DISPLAY_HEIGHT			544
 #define DISPLAY_STRIDE_IN_PIXELS	1024
 #define DISPLAY_COLOR_FORMAT		SCE_GXM_COLOR_FORMAT_A8B8G8R8
-#define DISPLAY_PIXEL_FORMAT		PSP2_DISPLAY_PIXELFORMAT_A8B8G8R8
+#define DISPLAY_PIXEL_FORMAT		SCE_DISPLAY_PIXELFORMAT_A8B8G8R8
 #define DISPLAY_BUFFER_COUNT		3
 #define DISPLAY_MAX_PENDING_SWAPS	2
 #define MSAA_MODE			SCE_GXM_MULTISAMPLE_NONE
@@ -138,7 +138,7 @@ static void display_callback(const void *callback_data)
 	framebuf.pixelformat = DISPLAY_PIXEL_FORMAT;
 	framebuf.width       = DISPLAY_WIDTH;
 	framebuf.height      = DISPLAY_HEIGHT;
-	sceDisplaySetFrameBuf(&framebuf, PSP2_DISPLAY_SETBUF_NEXTFRAME);
+	sceDisplaySetFrameBuf(&framebuf, SCE_DISPLAY_SETBUF_NEXTFRAME);
 
 	if (vblank_wait) {
 		sceDisplayWaitVblankStart();

@@ -106,7 +106,7 @@ vita2d_texture *vita2d_load_PNG_file(const char *filename)
 	png_byte pngsig[PNG_SIGSIZE];
 	SceUID fd;
 
-	if ((fd = sceIoOpen(filename, PSP2_O_RDONLY, 0777)) < 0) {
+	if ((fd = sceIoOpen(filename, SCE_O_RDONLY, 0777)) < 0) {
 		goto exit_error;
 	}
 
