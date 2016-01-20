@@ -38,6 +38,7 @@ typedef struct vita2d_texture {
 } vita2d_texture;
 
 typedef struct vita2d_font vita2d_font;
+typedef struct vita2d_pgf vita2d_pgf;
 
 int vita2d_init();
 int vita2d_init_advanced(unsigned int temp_pool_size);
@@ -87,6 +88,7 @@ void vita2d_draw_texture_rotate_hotspot(const vita2d_texture *texture, float x, 
 void vita2d_draw_texture_scale(const vita2d_texture *texture, float x, float y, float x_scale, float y_scale);
 void vita2d_draw_texture_part(const vita2d_texture *texture, float x, float y, float tex_x, float tex_y, float tex_w, float tex_h);
 void vita2d_draw_texture_part_scale(const vita2d_texture *texture, float x, float y, float tex_x, float tex_y, float tex_w, float tex_h, float x_scale, float y_scale);
+void vita2d_draw_texture_scale_rotate_hotspot(const vita2d_texture *texture, float x, float y, float x_scale, float y_scale, float rad, float center_x, float center_y);
 void vita2d_draw_texture_scale_rotate(const vita2d_texture *texture, float x, float y, float x_scale, float y_scale, float rad);
 
 void vita2d_draw_texture_tint(const vita2d_texture *texture, float x, float y, unsigned int color);
@@ -95,6 +97,7 @@ void vita2d_draw_texture_tint_rotate_hotspot(const vita2d_texture *texture, floa
 void vita2d_draw_texture_tint_scale(const vita2d_texture *texture, float x, float y, float x_scale, float y_scale, unsigned int color);
 void vita2d_draw_texture_tint_part(const vita2d_texture *texture, float x, float y, float tex_x, float tex_y, float tex_w, float tex_h, unsigned int color);
 void vita2d_draw_texture_tint_part_scale(const vita2d_texture *texture, float x, float y, float tex_x, float tex_y, float tex_w, float tex_h, float x_scale, float y_scale, unsigned int color);
+void vita2d_draw_texture_tint_scale_rotate_hotspot(const vita2d_texture *texture, float x, float y, float x_scale, float y_scale, float rad, float center_x, float center_y, unsigned int color);
 void vita2d_draw_texture_tint_scale_rotate(const vita2d_texture *texture, float x, float y, float x_scale, float y_scale, float rad, unsigned int color);
 
 vita2d_texture *vita2d_load_PNG_file(const char *filename);
@@ -115,6 +118,14 @@ void vita2d_font_text_dimensions(vita2d_font *font, unsigned int size, const cha
 int vita2d_font_text_width(vita2d_font *font, unsigned int size, const char *text);
 int vita2d_font_text_height(vita2d_font *font, unsigned int size, const char *text);
 
+/* PGF functions are weak imports at the moment, they have to be resolved manually */
+vita2d_pgf *vita2d_load_default_pgf();
+void vita2d_free_pgf(vita2d_pgf *font);
+int vita2d_pgf_draw_text(vita2d_pgf *font, int x, int y, unsigned int color, unsigned int size, const char *text);
+int vita2d_pgf_draw_textf(vita2d_pgf *font, int x, int y, unsigned int color, unsigned int size, const char *text, ...);
+void vita2d_pgf_text_dimensions(vita2d_pgf *font, unsigned int size, const char *text, int *width, int *height);
+int vita2d_pgf_text_width(vita2d_pgf *font, unsigned int size, const char *text);
+int vita2d_pgf_text_height(vita2d_pgf *font, unsigned int size, const char *text);
 
 #ifdef __cplusplus
 }
