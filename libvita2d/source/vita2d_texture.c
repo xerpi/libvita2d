@@ -85,6 +85,7 @@ vita2d_texture *vita2d_create_empty_texture_format(unsigned int w, unsigned int 
 			&texture->palette_UID);
 
 		if (!texture_palette) {
+			texture->palette_UID = 0;
 			vita2d_free_texture(texture);
 			return NULL;
 		}
