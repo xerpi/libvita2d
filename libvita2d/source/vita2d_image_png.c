@@ -58,8 +58,15 @@ static vita2d_texture *_vita2d_load_PNG_generic(const void *io_ptr, png_rw_ptr r
 			png_set_expand(png_ptr);
 	}
 
+	if (bit_depth == 16)
+		png_set_scale_16(png_ptr);
+
 	if (bit_depth == 8 && color_type == PNG_COLOR_TYPE_RGB)
 		png_set_filler(png_ptr, 0xFF, PNG_FILLER_AFTER);
+
+	if (color_type == PNG_COLOR_TYPE_GRAY ||
+	    color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
+		png_set_gray_to_rgb(png_ptr);
 
 	if (color_type == PNG_COLOR_TYPE_PALETTE) {
 		png_set_palette_to_rgb(png_ptr);
