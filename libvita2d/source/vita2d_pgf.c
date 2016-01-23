@@ -74,9 +74,12 @@ vita2d_pgf *vita2d_load_default_pgf()
 
 void vita2d_free_pgf(vita2d_pgf *font)
 {
-	sceFontClose(font->font_handle);
-	sceFontDoneLib(font->lib_handle);
-	free(font);
+	if (font) {
+		sceFontClose(font->font_handle);
+		sceFontDoneLib(font->lib_handle);
+		texture_atlas_free(font->tex_atlas);
+		free(font);
+	}
 }
 
 static int atlas_add_glyph(vita2d_pgf *font, unsigned int character)
