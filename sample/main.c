@@ -34,7 +34,7 @@ int main()
 		vita2d_clear_screen();
 
 		vita2d_draw_rectangle(20, 20, 400, 250, RGBA8(255, 0, 0, 255));
-		vita2d_draw_rectangle(700, 300, 100, 150, RGBA8(0, 0, 255, 255));
+		vita2d_draw_rectangle(680, 350, 100, 150, RGBA8(0, 0, 255, 255));
 		vita2d_draw_fill_circle(200, 420, 100, RGBA8(0, 255,0 ,255));
 
 		/* Fill the texture with random data */
@@ -47,9 +47,9 @@ int main()
 
 		vita2d_draw_texture_rotate(tex, 940/2, 544/2, rad);
 
-		vita2d_pgf_draw_text(pgf, 700, 10, RGBA8(0,255,0,255), 10, "PGF Font sample!");
+		vita2d_draw_line(500, 30, 800, 300, RGBA8(255, 0, 255, 255));
 
-		vita2d_draw_line(40, 40, 300, 300, RGBA8(255, 0, 255, 255));
+		vita2d_pgf_draw_text(pgf, 700, 30, RGBA8(0,255,0,255), 1.0f, "PGF Font sample!");
 
 		vita2d_end_drawing();
 		vita2d_swap_buffers();

@@ -11,8 +11,8 @@
 #include "utils.h"
 #include "shared.h"
 
-#define ATLAS_DEFAULT_W 512
-#define ATLAS_DEFAULT_H 512
+#define ATLAS_DEFAULT_W 256
+#define ATLAS_DEFAULT_H 256
 
 typedef enum {
 	VITA2D_LOAD_FROM_FILE,

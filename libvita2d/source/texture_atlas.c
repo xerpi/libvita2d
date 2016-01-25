@@ -18,6 +18,8 @@ texture_atlas *texture_atlas_create(int width, int height, SceGxmTextureFormat f
 	atlas->bp_root = bp2d_create(&rect);
 	atlas->htab = int_htab_create(256);
 
+	vita2d_texture_set_filters(atlas->tex, SCE_GXM_TEXTURE_FILTER_LINEAR, SCE_GXM_TEXTURE_FILTER_LINEAR);
+
 	return atlas;
 }
 
@@ -102,7 +104,8 @@ int texture_atlas_get(texture_atlas *atlas, unsigned int character, bp2d_rectang
 	*bitmap_top = entry->bitmap_top;
 	*advance_x = entry->advance_x;
 	*advance_y = entry->advance_y;
-	*glyph_size = entry->glyph_size;
+	if (glyph_size)
+		*glyph_size = entry->glyph_size;
 
 	return 1;
 }

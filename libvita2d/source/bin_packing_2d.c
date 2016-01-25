@@ -20,13 +20,15 @@ bp2d_node *bp2d_create(const bp2d_rectangle *rect)
 
 void bp2d_free(bp2d_node *node)
 {
-	if (node->left) {
-		bp2d_free(node->left);
+	if (node) {
+		if (node->left) {
+			bp2d_free(node->left);
+		}
+		if (node->right) {
+			bp2d_free(node->right);
+		}
+		free(node);
 	}
-	if (node->right) {
-		bp2d_free(node->right);
-	}
-	free(node);
 }
 
 int bp2d_insert(bp2d_node *node, const bp2d_size *in_size, bp2d_position *out_pos, bp2d_node **out_node)
@@ -89,11 +91,16 @@ int bp2d_insert(bp2d_node *node, const bp2d_size *in_size, bp2d_position *out_po
 
 int bp2d_delete(bp2d_node *root, bp2d_node *node)
 {
-	if (root == node) {
-		bp2d_free(root);
-		return 1;
-	} else if (root == NULL)
+	if (root == NULL || node == NULL)
 		return 0;
+	else if (root == node) {
+		bp2d_free(root->left);
+		bp2d_free(root->right);
+		root->left = NULL;
+		root->right = NULL;
+		root->filled = 0;
+		return 1;
+	}
 
 	return bp2d_delete(root->left, node) || bp2d_delete(root->right, node);
 }

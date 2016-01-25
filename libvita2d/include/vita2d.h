@@ -121,11 +121,11 @@ int vita2d_font_text_height(vita2d_font *font, unsigned int size, const char *te
 /* PGF functions are weak imports at the moment, they have to be resolved manually */
 vita2d_pgf *vita2d_load_default_pgf();
 void vita2d_free_pgf(vita2d_pgf *font);
-int vita2d_pgf_draw_text(vita2d_pgf *font, int x, int y, unsigned int color, unsigned int size, const char *text);
-int vita2d_pgf_draw_textf(vita2d_pgf *font, int x, int y, unsigned int color, unsigned int size, const char *text, ...);
-void vita2d_pgf_text_dimensions(vita2d_pgf *font, unsigned int size, const char *text, int *width, int *height);
-int vita2d_pgf_text_width(vita2d_pgf *font, unsigned int size, const char *text);
-int vita2d_pgf_text_height(vita2d_pgf *font, unsigned int size, const char *text);
+int vita2d_pgf_draw_text(vita2d_pgf *font, int x, int y, unsigned int color, float scale, const char *text);
+int vita2d_pgf_draw_textf(vita2d_pgf *font, int x, int y, unsigned int color, float scale, const char *text, ...);
+void vita2d_pgf_text_dimensions(vita2d_pgf *font, float scale, const char *text, int *width, int *height);
+int vita2d_pgf_text_width(vita2d_pgf *font, float scale, const char *text);
+int vita2d_pgf_text_height(vita2d_pgf *font, float scale, const char *text);
 
 #ifdef __cplusplus
 }
