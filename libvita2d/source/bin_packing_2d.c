@@ -29,12 +29,12 @@ void bp2d_free(bp2d_node *node)
 	free(node);
 }
 
-int bp2d_insert(bp2d_node *node, const bp2d_size *in_size, bp2d_position *out_pos)
+int bp2d_insert(bp2d_node *node, const bp2d_size *in_size, bp2d_position *out_pos, bp2d_node **out_node)
 {
 	if (node->left != NULL || node->right != NULL) {
-		int ret = bp2d_insert(node->left, in_size, out_pos);
+		int ret = bp2d_insert(node->left, in_size, out_pos, out_node);
 		if (ret == 0) {
-			return bp2d_insert(node->right, in_size, out_pos);
+			return bp2d_insert(node->right, in_size, out_pos, out_node);
 		}
 		return ret;
 	} else {
@@ -48,6 +48,8 @@ int bp2d_insert(bp2d_node *node, const bp2d_size *in_size, bp2d_position *out_po
 			out_pos->x = node->rect.x;
 			out_pos->y = node->rect.y;
 			node->filled = 1;
+			if (out_node)
+				*out_node = node;
 			return 1;
 		}
 
@@ -81,6 +83,17 @@ int bp2d_insert(bp2d_node *node, const bp2d_size *in_size, bp2d_position *out_po
 		node->left = bp2d_create(&left_rect);
 		node->right = bp2d_create(&right_rect);
 
-		return bp2d_insert(node->left, in_size, out_pos);
+		return bp2d_insert(node->left, in_size, out_pos, out_node);
 	}
+}
+
+int bp2d_delete(bp2d_node *root, bp2d_node *node)
+{
+	if (root == node) {
+		bp2d_free(root);
+		return 1;
+	} else if (root == NULL)
+		return 0;
+
+	return bp2d_delete(root->left, node) || bp2d_delete(root->right, node);
 }

@@ -16,6 +16,8 @@ int main()
 	vita2d_init();
 	vita2d_set_clear_color(RGBA8(0x40, 0x40, 0x40, 0xFF));
 
+	vita2d_pgf *pgf = vita2d_load_default_pgf();
+
 	vita2d_texture *tex = vita2d_create_empty_texture(128, 128);
 	unsigned int *tex_data = vita2d_texture_get_datap(tex);
 
@@ -45,6 +47,8 @@ int main()
 
 		vita2d_draw_texture_rotate(tex, 940/2, 544/2, rad);
 
+		vita2d_pgf_draw_text(pgf, 700, 10, RGBA8(0,255,0,255), 10, "PGF Font sample!");
+
 		vita2d_draw_line(40, 40, 300, 300, RGBA8(255, 0, 255, 255));
 
 		vita2d_end_drawing();
@@ -55,6 +59,7 @@ int main()
 
 	vita2d_fini();
 	vita2d_free_texture(tex);
+	vita2d_free_pgf(pgf);
 
 	sceKernelExitProcess(0);
 	return 0;

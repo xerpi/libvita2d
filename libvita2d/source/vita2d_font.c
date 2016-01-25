@@ -180,7 +180,7 @@ static int atlas_add_glyph(texture_atlas *atlas, unsigned int glyph_index, const
 		}
 	}
 
-	int ret = texture_atlas_insert(atlas, glyph_index, buffer,
+	int ret = texture_atlas_insert_draw(atlas, glyph_index, buffer,
 		bitmap->width, bitmap->rows,
 		bitmap_glyph->left, bitmap_glyph->top,
 		bitmap_glyph->root.advance.x, bitmap_glyph->root.advance.y,
@@ -248,9 +248,10 @@ int vita2d_font_draw_text(vita2d_font *font, int x, int y, unsigned int color, u
 		int advance_x, advance_y;
 		int glyph_size;
 
-		texture_atlas_get(font->tex_atlas, glyph_index,
+		if (!texture_atlas_get(font->tex_atlas, glyph_index,
 			&rect, &bitmap_left, &bitmap_top,
-			&advance_x, &advance_y, &glyph_size);
+			&advance_x, &advance_y, &glyph_size))
+				continue;
 
 		const float draw_scale = size/(float)glyph_size;
 

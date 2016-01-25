@@ -8,7 +8,7 @@ OBJS   = main.o
 
 LIBS = -lvita2d -lSceKernel_stub -lSceDisplay_stub -lSceGxm_stub \
 	-lSceSysmodule_stub -lSceCtrl_stub -lScePgf_stub \
-	-lSceCommonDialog_stub -lpng -ljpeg -lfreetype -lz -lm -lc
+	-lSceCommonDialog_stub -lfreetype -lpng -ljpeg -lz -lm -lc
 
 PREFIX  = arm-vita-eabi
 CC      = $(PREFIX)-gcc

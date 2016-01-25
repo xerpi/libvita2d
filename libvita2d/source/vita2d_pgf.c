@@ -40,8 +40,8 @@ vita2d_pgf *vita2d_load_default_pgf()
 		return NULL;
 
 	SceFontNewLibParams params = {
-		NULL,
-		2,
+		font,
+		1,
 		NULL,
 		pgf_alloc_func,
 		pgf_free_func,
@@ -82,36 +82,36 @@ void vita2d_free_pgf(vita2d_pgf *font)
 	}
 }
 
-static int atlas_add_glyph(vita2d_pgf *font, unsigned int character)
+static int atlas_add_glyph(vita2d_pgf *font, unsigned int character, int glyph_size)
 {
 	SceFontCharInfo char_info;
-	sceFontGetCharInfo(font->font_handle, character, &char_info);
+	if (sceFontGetCharInfo(font->font_handle, character, &char_info) < 0)
+		return 0;
 
-	unsigned char *buffer = malloc(char_info.bitmapWidth * char_info.bitmapHeight);
-	memset(buffer, 0, char_info.bitmapWidth * char_info.bitmapHeight);
-
-	static SceFontGlyphImage glyph_image;
-	glyph_image.pixelFormat = FONT_PIXELFORMAT_8;
-	glyph_image.xPos64 = 0;
-	glyph_image.yPos64 = 0;
-	glyph_image.bufWidth = char_info.bitmapWidth;
-	glyph_image.bufHeight = char_info.bitmapHeight;
-	glyph_image.bytesPerLine = char_info.bitmapWidth;
-	glyph_image.pad = 0;
-	glyph_image.bufferPtr = (unsigned int)buffer;
-
-	sceFontGetCharGlyphImage(font->font_handle, character, &glyph_image);
-
-	int ret = texture_atlas_insert(font->tex_atlas, character, buffer,
+	int pos_x;
+	int pos_y;
+	if (!texture_atlas_insert(font->tex_atlas, character,
 		char_info.bitmapWidth, char_info.bitmapHeight,
 		char_info.bitmapLeft, char_info.bitmapTop,
 		char_info.sfp26AdvanceH,
 		char_info.sfp26AdvanceV,
-		0);
+		glyph_size, &pos_x, &pos_y))
+			return 0;
 
-	free(buffer);
 
-	return ret;
+	SceFontGlyphImage glyph_image;
+	glyph_image.pixelFormat = SCE_FONT_PIXELFORMAT_8;
+	glyph_image.xPos64 = pos_x*64;
+	glyph_image.yPos64 = pos_y*64;
+	glyph_image.bufWidth = 512;
+	glyph_image.bufHeight = 512;
+	glyph_image.bytesPerLine = 512;
+	glyph_image.pad = 0;
+	glyph_image.bufferPtr = (unsigned int)vita2d_texture_get_datap(font->tex_atlas->tex);
+
+	sceFontGetCharGlyphImage(font->font_handle, character, &glyph_image);
+
+	return 0;
 }
 
 int vita2d_pgf_draw_text(vita2d_pgf *font, int x, int y, unsigned int color, unsigned int size, const char *text)
@@ -123,7 +123,7 @@ int vita2d_pgf_draw_text(vita2d_pgf *font, int x, int y, unsigned int color, uns
 		unsigned int character = *text++;
 
 		if (!texture_atlas_exists(font->tex_atlas, character)) {
-			if (!atlas_add_glyph(font, character)) {
+			if (!atlas_add_glyph(font, character, size)) {
 				continue;
 			}
 		}
@@ -133,9 +133,10 @@ int vita2d_pgf_draw_text(vita2d_pgf *font, int x, int y, unsigned int color, uns
 		int advance_x, advance_y;
 		int glyph_size;
 
-		texture_atlas_get(font->tex_atlas, character,
+		if (!texture_atlas_get(font->tex_atlas, character,
 			&rect, &bitmap_left, &bitmap_top,
-			&advance_x, &advance_y, &glyph_size);
+			&advance_x, &advance_y, &glyph_size))
+				continue;
 
 		//const float draw_scale = size/(float)glyph_size;
 		const float draw_scale = 1.0f;
@@ -174,7 +175,7 @@ void vita2d_pgf_text_dimensions(vita2d_pgf *font, unsigned int size, const char 
 		unsigned int character = *text++;
 
 		if (!texture_atlas_exists(font->tex_atlas, character)) {
-			if (!atlas_add_glyph(font, character)) {
+			if (!atlas_add_glyph(font, character, size)) {
 				continue;
 			}
 		}
@@ -184,9 +185,10 @@ void vita2d_pgf_text_dimensions(vita2d_pgf *font, unsigned int size, const char 
 		int advance_x, advance_y;
 		int glyph_size;
 
-		texture_atlas_get(font->tex_atlas, character,
+		if (!texture_atlas_get(font->tex_atlas, character,
 			&rect, &bitmap_left, &bitmap_top,
-			&advance_x, &advance_y, &glyph_size);
+			&advance_x, &advance_y, &glyph_size))
+				continue;
 
 		//const float draw_scale = size/(float)glyph_size;
 		const float draw_scale = 1.0f;
