@@ -14,6 +14,9 @@ void *gpu_alloc(SceKernelMemBlockType type, unsigned int size, unsigned int alig
 
 	*uid = sceKernelAllocMemBlock("gpu_mem", type, size, NULL);
 
+	if (*uid < 0)
+		return NULL;
+
 	if (sceKernelGetMemBlockBase(*uid, &mem) < 0)
 		return NULL;
 
