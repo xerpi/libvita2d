@@ -15,14 +15,21 @@ static vita2d_texture *_vita2d_load_JPEG_generic(struct jpeg_decompress_struct *
 		jinfo->output_height,
 		SCE_GXM_TEXTURE_FORMAT_U8U8U8_BGR);
 
+	if (!texture) {
+		jpeg_abort_decompress(jinfo);
+		return NULL;
+	}
+
 	void *texture_data = vita2d_texture_get_datap(texture);
 	unsigned int row_stride = vita2d_texture_get_stride(texture);
-	void *row_pointer = texture_data;
+	unsigned char *row_pointer = texture_data;
 
 	while (jinfo->output_scanline < jinfo->output_height) {
 		jpeg_read_scanlines(jinfo, (JSAMPARRAY)&row_pointer, 1);
 		row_pointer += row_stride;
 	}
+
+	jpeg_finish_decompress(jinfo);
 
 	return texture;
 }
@@ -45,7 +52,6 @@ vita2d_texture *vita2d_load_JPEG_file(const char *filename)
 
 	vita2d_texture *texture = _vita2d_load_JPEG_generic(&jinfo, &jerr);
 
-	jpeg_finish_decompress(&jinfo);
 	jpeg_destroy_decompress(&jinfo);
 
 	fclose(fp);
@@ -66,7 +72,6 @@ vita2d_texture *vita2d_load_JPEG_buffer(const void *buffer, unsigned long buffer
 
 	vita2d_texture *texture = _vita2d_load_JPEG_generic(&jinfo, &jerr);
 
-	jpeg_finish_decompress(&jinfo);
 	jpeg_destroy_decompress(&jinfo);
 
 	return texture;
