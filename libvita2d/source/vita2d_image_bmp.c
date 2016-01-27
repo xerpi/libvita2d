@@ -46,6 +46,9 @@ static vita2d_texture *_vita2d_load_BMP_generic(
 		bmp_ih->biWidth,
 		bmp_ih->biHeight);
 
+	if (!texture)
+		return NULL;
+
 	void *texture_data = vita2d_texture_get_datap(texture);
 	unsigned int tex_stride = vita2d_texture_get_stride(texture);
 
