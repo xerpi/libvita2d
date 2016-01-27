@@ -6,6 +6,8 @@
 #include "utils.h"
 #include "shared.h"
 
+#define GXM_TEX_MAX_SIZE 4096
+
 static int tex_format_to_bytespp(SceGxmTextureFormat format)
 {
 	switch (format & 0x9f000000U) {
@@ -41,10 +43,12 @@ vita2d_texture *vita2d_create_empty_texture(unsigned int w, unsigned int h)
 
 vita2d_texture *vita2d_create_empty_texture_format(unsigned int w, unsigned int h, SceGxmTextureFormat format)
 {
-	vita2d_texture *texture = malloc(sizeof(*texture));
-	if (!texture) {
+	if (w > GXM_TEX_MAX_SIZE || h > GXM_TEX_MAX_SIZE)
 		return NULL;
-	}
+
+	vita2d_texture *texture = malloc(sizeof(*texture));
+	if (!texture)
+		return NULL;
 
 	const int tex_size =  w * h * tex_format_to_bytespp(format);
 
