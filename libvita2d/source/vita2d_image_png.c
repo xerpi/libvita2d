@@ -84,16 +84,16 @@ static vita2d_texture *_vita2d_load_PNG_generic(const void *io_ptr, png_rw_ptr r
 
 	png_read_update_info(png_ptr, info_ptr);
 
-	vita2d_texture *texture = vita2d_create_empty_texture(width, height);
-	if (!texture)
-		goto exit_destroy;
-
-	void *texture_data = vita2d_texture_get_datap(texture);
-	unsigned int stride = vita2d_texture_get_stride(texture);
-
 	row_ptrs = (png_bytep *)malloc(sizeof(png_bytep) * height);
 	if (!row_ptrs)
 		goto exit_destroy;
+
+	vita2d_texture *texture = vita2d_create_empty_texture(width, height);
+	if (!texture)
+		goto exit_create_tex;
+
+	void *texture_data = vita2d_texture_get_datap(texture);
+	unsigned int stride = vita2d_texture_get_stride(texture);
 
 	int i;
 	for (i = 0; i < height; i++) {
@@ -107,6 +107,8 @@ static vita2d_texture *_vita2d_load_PNG_generic(const void *io_ptr, png_rw_ptr r
 
 	return texture;
 
+exit_create_tex:
+	free(row_ptrs);
 exit_destroy:
 	png_destroy_read_struct(&png_ptr, (png_infopp)0, (png_infopp)0);
 exit_error:
