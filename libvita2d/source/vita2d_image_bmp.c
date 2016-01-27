@@ -42,18 +42,23 @@ static vita2d_texture *_vita2d_load_BMP_generic(
 		row_stride += 4-(row_stride%4);
 	}
 
+	void *buffer = malloc(row_stride);
+	if (!buffer)
+		return NULL;
+
 	vita2d_texture *texture = vita2d_create_empty_texture(
 		bmp_ih->biWidth,
 		bmp_ih->biHeight);
 
-	if (!texture)
+	if (!texture) {
+		free(buffer);
 		return NULL;
+	}
 
 	void *texture_data = vita2d_texture_get_datap(texture);
 	unsigned int tex_stride = vita2d_texture_get_stride(texture);
 
 	int i, x, y;
-	void *buffer = malloc(row_stride);
 
 	seek_fn(user_data, bmp_fh->bfOffBits);
 
