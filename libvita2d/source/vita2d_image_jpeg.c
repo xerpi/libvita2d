@@ -8,6 +8,22 @@
 
 static vita2d_texture *_vita2d_load_JPEG_generic(struct jpeg_decompress_struct *jinfo, struct jpeg_error_mgr *jerr)
 {
+	float downScaleWidth = (float)jinfo->image_width / 4096;
+	float downScaleHeight = (float)jinfo->image_height / 4096;
+	float downScale = (downScaleWidth >= downScaleHeight) ? downScaleWidth : downScaleHeight;
+
+	if (downScale <= 1.f) {
+		jinfo->scale_denom = 1;
+	} else if (downScale <= 2.f) {
+		jinfo->scale_denom = 2;
+	} else if (downScale <= 4.f) {
+		jinfo->scale_denom = 4;
+	} else if (downScale <= 8.f) {
+		jinfo->scale_denom = 8;
+	} else {
+		return NULL;
+	}
+
 	jpeg_start_decompress(jinfo);
 
 	vita2d_texture *texture = vita2d_create_empty_texture_format(
@@ -42,6 +58,15 @@ vita2d_texture *vita2d_load_JPEG_file(const char *filename)
 		return NULL;
 	}
 
+	unsigned int magic = 0;
+	fread(&magic, 1, sizeof(unsigned int), fp);
+	fseek(fp, 0, SEEK_SET);
+
+	if (magic != 0xE0FFD8FF && magic != 0xE1FFD8FF) {
+		fclose(fp);
+		return NULL;
+	}
+
 	struct jpeg_decompress_struct jinfo;
 	struct jpeg_error_mgr jerr;
 
@@ -61,6 +86,11 @@ vita2d_texture *vita2d_load_JPEG_file(const char *filename)
 
 vita2d_texture *vita2d_load_JPEG_buffer(const void *buffer, unsigned long buffer_size)
 {
+	unsigned int magic = *(unsigned int *)buffer;
+	if (magic != 0xE0FFD8FF && magic != 0xE1FFD8FF) {
+		return NULL;
+	}
+
 	struct jpeg_decompress_struct jinfo;
 	struct jpeg_error_mgr jerr;
 
