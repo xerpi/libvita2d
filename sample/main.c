@@ -56,5 +56,6 @@ int main()
 	vita2d_free_texture(image);
 	vita2d_free_pgf(pgf);
 
+	sceKernelExitProcess(0);
 	return 0;
 }
