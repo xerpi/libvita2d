@@ -11,6 +11,9 @@
 
 #include <vita2d.h>
 
+// Symbol of the image.png file
+extern unsigned char _binary_image_png_start;
+
 int main()
 {
 	vita2d_init();
@@ -18,8 +21,8 @@ int main()
 
 	vita2d_pgf *pgf = vita2d_load_default_pgf();
 
-	vita2d_texture *tex = vita2d_create_empty_texture(128, 128);
-	unsigned int *tex_data = vita2d_texture_get_datap(tex);
+	// Load the statically compiled image.png file
+	vita2d_texture *image = vita2d_load_PNG_buffer(&_binary_image_png_start);
 
 	SceCtrlData pad;
 	memset(&pad, 0, sizeof(pad));
@@ -37,15 +40,7 @@ int main()
 		vita2d_draw_rectangle(680, 350, 100, 150, RGBA8(0, 0, 255, 255));
 		vita2d_draw_fill_circle(200, 420, 100, RGBA8(0, 255,0 ,255));
 
-		/* Fill the texture with random data */
-		int i, j;
-		for (i = 0; i < 128; i++) {
-			for (j = 0; j < 128; j++) {
-				tex_data[j + i*128] = rand();
-			}
-		}
-
-		vita2d_draw_texture_rotate(tex, 940/2, 544/2, rad);
+		vita2d_draw_texture_rotate(image, 940/2, 544/2, rad);
 
 		vita2d_draw_line(500, 30, 800, 300, RGBA8(255, 0, 255, 255));
 
@@ -58,9 +53,8 @@ int main()
 	}
 
 	vita2d_fini();
-	vita2d_free_texture(tex);
+	vita2d_free_texture(image);
 	vita2d_free_pgf(pgf);
 
-	sceKernelExitProcess(0);
 	return 0;
 }

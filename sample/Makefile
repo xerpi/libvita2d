@@ -4,7 +4,7 @@
 #
 
 TARGET = vita2dsample
-OBJS   = main.o
+OBJS   = main.o image.o
 
 LIBS = -lvita2d -lSceKernel_stub -lSceDisplay_stub -lSceGxm_stub \
 	-lSceSysmodule_stub -lSceCtrl_stub -lScePgf_stub \
@@ -23,6 +23,9 @@ all: $(TARGET).velf
 
 $(TARGET).elf: $(OBJS)
 	$(CC) $(CFLAGS) $^ $(LIBS) -o $@
+
+%.o: %.png
+	$(PREFIX)-ld -r -b binary -o $@ $^
 
 clean:
 	@rm -rf $(TARGET).velf $(TARGET).elf $(OBJS)
