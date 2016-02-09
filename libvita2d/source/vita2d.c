@@ -3,6 +3,7 @@
 #include <psp2/types.h>
 #include <psp2/kernel/sysmem.h>
 #include <psp2/message_dialog.h>
+#include <psp2/sysmodule.h>
 #include <string.h>
 #include <stdlib.h>
 #include "vita2d.h"
@@ -42,6 +43,8 @@ extern const SceGxmProgram texture_f_gxp_start;
 extern const SceGxmProgram texture_tint_f_gxp_start;
 
 /* Static variables */
+
+static int pgf_module_was_loaded = 0;
 
 static const SceGxmProgram *const clearVertexProgramGxp         = &clear_v_gxp_start;
 static const SceGxmProgram *const clearFragmentProgramGxp       = &clear_f_gxp_start;
@@ -592,6 +595,11 @@ int vita2d_init_advanced(unsigned int temp_pool_size)
 	backBufferIndex = 0;
 	frontBufferIndex = 0;
 
+	pgf_module_was_loaded = sceSysmoduleIsLoaded(SCE_SYSMODULE_PGF);
+
+	if (pgf_module_was_loaded != SCE_SYSMODULE_LOADED)
+		sceSysmoduleLoadModule(SCE_SYSMODULE_PGF);
+
 	vita2d_initialized = 1;
 	return 1;
 }
@@ -665,6 +673,9 @@ int vita2d_fini()
 
 	// terminate libgxm
 	sceGxmTerminate();
+
+	if (pgf_module_was_loaded != SCE_SYSMODULE_LOADED)
+		sceSysmoduleUnloadModule(SCE_SYSMODULE_PGF);
 
 	vita2d_initialized = 0;
 
