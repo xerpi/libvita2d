@@ -31,23 +31,67 @@ void texture_atlas_free(texture_atlas *atlas)
 	free(atlas);
 }
 
+extern int netdbg(const char *text, ...);
+
 int texture_atlas_insert(texture_atlas *atlas, unsigned int character, int width, int height, int bitmap_left, int bitmap_top, int advance_x, int advance_y, int glyph_size, int *inserted_x, int *inserted_y)
 {
 	bp2d_size size;
 	size.w = width;
 	size.h = height;
 
-	bp2d_position pos;
 	bp2d_node *new_node;
-	if (!bp2d_insert(atlas->bp_root, &size, &pos, &new_node))
-		return 0;
+	if (!bp2d_insert(atlas->bp_root, &size, &new_node)) {
+		netdbg("insert failed char: %d\n", character);
+		const bp2d_size new_size = {
+			atlas->bp_root->rect.w * 2,
+			atlas->bp_root->rect.h * 2
+		};
+		bp2d_node *new_root;
+		if (!bp2d_resize(atlas->bp_root, &new_size, &new_root)) {
+			netdbg("\tresize failed\n");
+			return 0;
+		}
+
+		netdbg("\tresized to %d x %d\n", new_root->rect.w, new_root->rect.h);
+
+		atlas->bp_root = new_root;
+
+		if (!bp2d_insert(atlas->bp_root, &size, &new_node)) {
+			netdbg("\tinsert failed AGAIN\n");
+			return 0;
+		}
+
+		vita2d_texture *new_tex;
+		new_tex = vita2d_create_empty_texture_format(new_size.w, new_size.h,
+			vita2d_texture_get_format(atlas->tex));
+		if (!new_tex)
+			return 0;
+
+		netdbg("\tgot new tex\n");
+
+		vita2d_texture_set_filters(new_tex, SCE_GXM_TEXTURE_FILTER_LINEAR, SCE_GXM_TEXTURE_FILTER_LINEAR);
+
+		void *old_data = vita2d_texture_get_datap(atlas->tex);
+		void *new_data = vita2d_texture_get_datap(new_tex);
+		unsigned int old_width = vita2d_texture_get_width(atlas->tex);
+		unsigned int new_width = vita2d_texture_get_width(new_tex);
+
+		int i;
+		for (i = 0; i < new_root->rect.h; i++) {
+			memcpy(new_data + (new_root->rect.x + (new_root->rect.y + i)*new_width),
+				old_data + i*old_width,
+				old_width);
+		}
+
+		// FIXME: MEMLEAK!
+		//vita2d_free_texture(atlas->tex);
+
+		atlas->tex = new_tex;
+	}
 
 	atlas_htab_entry *entry = malloc(sizeof(*entry));
 
-	entry->rect.x = pos.x;
-	entry->rect.y = pos.y;
-	entry->rect.w = width;
-	entry->rect.h = height;
+	entry->rect = new_node->rect;
 	entry->bitmap_left = bitmap_left;
 	entry->bitmap_top = bitmap_top;
 	entry->advance_x = advance_x;
@@ -60,9 +104,9 @@ int texture_atlas_insert(texture_atlas *atlas, unsigned int character, int width
 	}
 
 	if (inserted_x)
-		*inserted_x = pos.x;
+		*inserted_x = entry->rect.x;
 	if (inserted_y)
-		*inserted_y = pos.y;
+		*inserted_y = entry->rect.y;
 
 	return 1;
 }
@@ -85,7 +129,7 @@ int texture_atlas_insert_draw(texture_atlas *atlas, unsigned int character, cons
 	return 1;
 }
 
-int texture_atlas_exists(texture_atlas *atlas, unsigned int character)
+int texture_atlas_exists(const texture_atlas *atlas, unsigned int character)
 {
 	return int_htab_find(atlas->htab, character) != NULL;
 }

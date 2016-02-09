@@ -12,8 +12,8 @@
 #include "utils.h"
 #include "shared.h"
 
-#define ATLAS_DEFAULT_W 256
-#define ATLAS_DEFAULT_H 256
+#define ATLAS_DEFAULT_W 8
+#define ATLAS_DEFAULT_H 8
 
 typedef struct vita2d_pgf {
 	SceFontLibHandle lib_handle;
@@ -82,7 +82,8 @@ void vita2d_free_pgf(vita2d_pgf *font)
 	}
 }
 
-static int atlas_add_glyph(vita2d_pgf *font, unsigned int character)
+//static
+int atlas_add_glyph(vita2d_pgf *font, unsigned int character)
 {
 	SceFontCharInfo char_info;
 	if (sceFontGetCharInfo(font->font_handle, character, &char_info) < 0)
@@ -206,4 +207,9 @@ int vita2d_pgf_text_height(vita2d_pgf *font, float scale, const char *text)
 	int height;
 	vita2d_pgf_text_dimensions(font, scale, text, NULL, &height);
 	return height;
+}
+
+const vita2d_texture *vita2d_pgf_get_texture(const vita2d_pgf *font)
+{
+	return font->tex_atlas->tex;
 }

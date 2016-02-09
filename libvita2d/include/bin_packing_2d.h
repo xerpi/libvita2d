@@ -27,8 +27,9 @@ typedef struct bp2d_node {
 bp2d_node *bp2d_create(const bp2d_rectangle *rect);
 void bp2d_free(bp2d_node *node);
 // 1 success, 0 failure
-int bp2d_insert(bp2d_node *node, const bp2d_size *in_size, bp2d_position *out_pos, bp2d_node **out_node);
+int bp2d_insert(bp2d_node *node, const bp2d_size *in_size, bp2d_node **out_node);
 int bp2d_delete(bp2d_node *root, bp2d_node *node);
+int bp2d_resize(const bp2d_node *root, const bp2d_size *new_size, bp2d_node **new_root);
 
 #ifdef __cplusplus
 }

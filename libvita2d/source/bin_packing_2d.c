@@ -31,14 +31,13 @@ void bp2d_free(bp2d_node *node)
 	}
 }
 
-int bp2d_insert(bp2d_node *node, const bp2d_size *in_size, bp2d_position *out_pos, bp2d_node **out_node)
+int bp2d_insert(bp2d_node *node, const bp2d_size *in_size, bp2d_node **out_node)
 {
-	if (node->left != NULL || node->right != NULL) {
-		int ret = bp2d_insert(node->left, in_size, out_pos, out_node);
-		if (ret == 0) {
-			return bp2d_insert(node->right, in_size, out_pos, out_node);
-		}
-		return ret;
+	if (node == NULL)
+		return 0;
+	else if (node->left != NULL || node->right != NULL) {
+		return bp2d_insert(node->left, in_size, out_node) ||
+			bp2d_insert(node->right, in_size, out_node);
 	} else {
 		if (node->filled)
 			return 0;
@@ -47,8 +46,6 @@ int bp2d_insert(bp2d_node *node, const bp2d_size *in_size, bp2d_position *out_po
 			return 0;
 
 		if (in_size->w == node->rect.w && in_size->h == node->rect.h) {
-			out_pos->x = node->rect.x;
-			out_pos->y = node->rect.y;
 			node->filled = 1;
 			if (out_node)
 				*out_node = node;
@@ -85,7 +82,7 @@ int bp2d_insert(bp2d_node *node, const bp2d_size *in_size, bp2d_position *out_po
 		node->left = bp2d_create(&left_rect);
 		node->right = bp2d_create(&right_rect);
 
-		return bp2d_insert(node->left, in_size, out_pos, out_node);
+		return bp2d_insert(node->left, in_size, out_node);
 	}
 }
 
@@ -103,4 +100,37 @@ int bp2d_delete(bp2d_node *root, bp2d_node *node)
 	}
 
 	return bp2d_delete(root->left, node) || bp2d_delete(root->right, node);
+}
+
+int bp2d_resize(const bp2d_node *root, const bp2d_size *new_size, bp2d_node **new_root)
+{
+	int dw = new_size->w - root->rect.w;
+	int dh = new_size->h - root->rect.h;
+
+	if (dw < 0 || dh < 0)
+		return 0;
+
+	const bp2d_rectangle nrect = {
+		0, 0, new_size->w, new_size->h
+	};
+
+	bp2d_node *nroot = bp2d_create(&nrect);
+	if (!nroot)
+		return 0;
+
+	const bp2d_size cursize = {
+		root->rect.w, root->rect.h
+	};
+
+	bp2d_node *out_node;
+	if (!bp2d_insert(nroot, &cursize, &out_node))
+		return 0;
+
+	out_node->left = root->left;
+	out_node->right = root->right;
+
+	if (new_root)
+		*new_root = nroot;
+
+	return 1;
 }
