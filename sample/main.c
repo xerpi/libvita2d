@@ -31,7 +31,9 @@ int main()
 
 	while (1) {
 		sceCtrlPeekBufferPositive(0, &pad, 1);
-		if (pad.buttons & SCE_CTRL_START) break;
+
+		if (pad.buttons & SCE_CTRL_START)
+			break;
 
 		vita2d_start_drawing();
 		vita2d_clear_screen();
@@ -52,9 +54,9 @@ int main()
 		rad += 0.1f;
 	}
 
-	vita2d_fini();
 	vita2d_free_texture(image);
 	vita2d_free_pgf(pgf);
+	vita2d_fini();
 
 	sceKernelExitProcess(0);
 	return 0;
