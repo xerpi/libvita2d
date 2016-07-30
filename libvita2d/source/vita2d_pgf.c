@@ -134,7 +134,6 @@ int generic_pgf_draw_text(vita2d_pgf *font, int draw, int *height,
 			  int x, int y, unsigned int color, float scale,
 			  const char *text)
 {
-	int i;
 	unsigned int character;
 	bp2d_rectangle rect;
 	texture_atlas_entry_data data;
@@ -144,8 +143,8 @@ int generic_pgf_draw_text(vita2d_pgf *font, int draw, int *height,
 	int pen_x = x;
 	int pen_y = y;
 
-	for (i = 0; text[i];) {
-		i += utf8_to_ucs2(&text[i], &character);
+	while (*text) {
+		character = utf8_character(&text);
 
 		if (character == '\n') {
 			if (pen_x > max_x)
