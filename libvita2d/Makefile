@@ -9,9 +9,9 @@ SHADERS    = shader/compiled/clear_v_gxp.o shader/compiled/clear_f_gxp.o \
              shader/compiled/texture_v_gxp.o shader/compiled/texture_f_gxp.o \
              shader/compiled/texture_tint_f_gxp.o
 
-PREFIX  = arm-vita-eabi
-CC      = $(PREFIX)-gcc
-AR      = $(PREFIX)-gcc-ar
+PREFIX  ?= ${VITASDK}/arm-vita-eabi
+CC      = arm-vita-eabi-gcc
+AR      = arm-vita-eabi-ar
 CFLAGS  = -Wl,-q -Wall -O3 -I$(INCLUDES) -I$(VITASDK)/arm-vita-eabi/include/freetype2 -ffat-lto-objects -flto
 ASFLAGS = $(CFLAGS)
 
@@ -27,6 +27,8 @@ clean:
 	@rm -rf $(TARGET_LIB) $(OBJS)
 
 install: $(TARGET_LIB)
-	@cp $(TARGET_LIB) $(VITASDK)/arm-vita-eabi/lib
-	@cp include/vita2d.h $(VITASDK)/arm-vita-eabi/include
+	@mkdir -p $(DESTDIR)$(PREFIX)/lib/
+	@cp $(TARGET_LIB) $(DESTDIR)$(PREFIX)/lib/
+	@mkdir -p $(DESTDIR)$(PREFIX)/include/
+	@cp include/vita2d.h $(DESTDIR)$(PREFIX)/include/
 	@echo "Installed!"
