@@ -42,6 +42,7 @@ typedef struct vita2d_pgf vita2d_pgf;
 
 int vita2d_init();
 int vita2d_init_advanced(unsigned int temp_pool_size);
+void vita2d_wait_rendering_done();
 int vita2d_fini();
 
 void vita2d_clear_screen();
