@@ -11,23 +11,29 @@
 
 #include <vita2d.h>
 
-// Symbol of the image.png file
+/*
+ * Symbol of the image.png file
+ */
 extern unsigned char _binary_image_png_start;
 
 int main()
 {
+	SceCtrlData pad;
+	vita2d_pgf *pgf;
+	vita2d_texture *image;
+	float rad = 0.0f;
+
 	vita2d_init();
 	vita2d_set_clear_color(RGBA8(0x40, 0x40, 0x40, 0xFF));
 
-	vita2d_pgf *pgf = vita2d_load_default_pgf();
+	pgf = vita2d_load_default_pgf();
 
-	// Load the statically compiled image.png file
-	vita2d_texture *image = vita2d_load_PNG_buffer(&_binary_image_png_start);
+	/*
+	 * Load the statically compiled image.png file.
+	 */
+	image = vita2d_load_PNG_buffer(&_binary_image_png_start);
 
-	SceCtrlData pad;
 	memset(&pad, 0, sizeof(pad));
-
-	float rad = 0.0f;
 
 	while (1) {
 		sceCtrlPeekBufferPositive(0, &pad, 1);
@@ -54,9 +60,13 @@ int main()
 		rad += 0.1f;
 	}
 
+	/*
+	 * vita2d_fini() waits until the GPU has finished rendering,
+	 * then we can free the assets freely.
+	 */
+	vita2d_fini();
 	vita2d_free_texture(image);
 	vita2d_free_pgf(pgf);
-	vita2d_fini();
 
 	sceKernelExitProcess(0);
 	return 0;
