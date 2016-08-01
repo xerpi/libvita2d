@@ -54,6 +54,7 @@ int main()
 		rad += 0.1f;
 	}
 
+	vita2d_wait_rendering_done();
 	vita2d_free_texture(image);
 	vita2d_free_pgf(pgf);
 	vita2d_fini();
