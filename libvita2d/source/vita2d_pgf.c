@@ -12,8 +12,8 @@
 #include "utils.h"
 #include "shared.h"
 
-#define ATLAS_DEFAULT_W 256
-#define ATLAS_DEFAULT_H 256
+#define ATLAS_DEFAULT_W 4096
+#define ATLAS_DEFAULT_H 4096
 
 typedef struct vita2d_pgf {
 	SceFontLibHandle lib_handle;
@@ -59,7 +59,7 @@ vita2d_pgf *vita2d_load_default_pgf()
 		return NULL;
 	}
 
-	font->font_handle = sceFontOpen(font->lib_handle, 1, 0, &error);
+	font->font_handle = sceFontOpen(font->lib_handle, 0, 0, &error);
 	if (error != 0) {
 		sceFontDoneLib(font->lib_handle);
 		free(font);
@@ -117,8 +117,20 @@ int vita2d_pgf_draw_text(vita2d_pgf *font, int x, int y, unsigned int color, flo
 {
 	int pen_x = x;
 
-	while (*text) {
-		unsigned int character = *text++;
+	int i;
+	for (i = 0; text[i];) {
+		unsigned int character = 0;
+
+		if (((text[i] & 0xF0) == 0xE0) && ((text[i + 1] & 0xC0) == 0x80) && ((text[i + 2] & 0xC0) == 0x80)) {
+			character = ((text[i] & 0x0F) << 12) | ((text[i + 1] & 0x3F) << 6) | (text[i + 2] & 0x3F);
+			i += 3;
+		} else if (((text[i] & 0xE0) == 0xC0) && ((text[i + 1] & 0xC0) == 0x80)) {
+			character = ((text[i] & 0x1F) << 6) | (text[i + 1] & 0x3F);
+			i += 2;
+		} else {
+			character = text[i];
+			i += 1;
+		}
 
 		if (!texture_atlas_exists(font->tex_atlas, character)) {
 			if (!atlas_add_glyph(font, character)) {
@@ -164,8 +176,20 @@ void vita2d_pgf_text_dimensions(vita2d_pgf *font, float scale, const char *text,
 	int pen_x = 0;
 	int max_h = 0;
 
-	while (*text) {
-		unsigned int character = *text++;
+	int i;
+	for (i = 0; text[i];) {
+		unsigned int character = 0;
+
+		if (((text[i] & 0xF0) == 0xE0) && ((text[i + 1] & 0xC0) == 0x80) && ((text[i + 2] & 0xC0) == 0x80)) {
+			character = ((text[i] & 0x0F) << 12) | ((text[i + 1] & 0x3F) << 6) | (text[i + 2] & 0x3F);
+			i += 3;
+		} else if (((text[i] & 0xE0) == 0xC0) && ((text[i + 1] & 0xC0) == 0x80)) {
+			character = ((text[i] & 0x1F) << 6) | (text[i + 1] & 0x3F);
+			i += 2;
+		} else {
+			character = text[i];
+			i += 1;
+		}
 
 		if (!texture_atlas_exists(font->tex_atlas, character)) {
 			if (!atlas_add_glyph(font, character)) {
