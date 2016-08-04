@@ -12,8 +12,8 @@
 #include "utils.h"
 #include "shared.h"
 
-#define ATLAS_DEFAULT_W 256
-#define ATLAS_DEFAULT_H 256
+#define ATLAS_DEFAULT_W 512
+#define ATLAS_DEFAULT_H 512
 
 typedef struct vita2d_pgf {
 	SceFontLibHandle lib_handle;
@@ -59,7 +59,7 @@ vita2d_pgf *vita2d_load_default_pgf()
 		return NULL;
 	}
 
-	font->font_handle = sceFontOpen(font->lib_handle, 1, 0, &error);
+	font->font_handle = sceFontOpen(font->lib_handle, 0, 0, &error);
 	if (error != 0) {
 		sceFontDoneLib(font->lib_handle);
 		free(font);
@@ -113,22 +113,37 @@ static int atlas_add_glyph(vita2d_pgf *font, unsigned int character)
 	return sceFontGetCharGlyphImage(font->font_handle, character, &glyph_image) == 0;
 }
 
+static inline int utf8_to_ucs2(const char *utf8, unsigned int *character)
+{
+	if (((utf8[0] & 0xF0) == 0xE0) && ((utf8[1] & 0xC0) == 0x80) && ((utf8[2] & 0xC0) == 0x80)) {
+		*character = ((utf8[0] & 0x0F) << 12) | ((utf8[1] & 0x3F) << 6) | (utf8[2] & 0x3F);
+		return 3;
+	} else if (((utf8[0] & 0xE0) == 0xC0) && ((utf8[1] & 0xC0) == 0x80)) {
+		*character = ((utf8[0] & 0x1F) << 6) | (utf8[1] & 0x3F);
+		return 2;
+	} else {
+		*character = utf8[0];
+		return 1;
+	}
+}
+
 int vita2d_pgf_draw_text(vita2d_pgf *font, int x, int y, unsigned int color, float scale, const char *text)
 {
+	int i;
+	unsigned int character;
+	bp2d_rectangle rect;
+	int bitmap_left, bitmap_top;
+	int advance_x, advance_y;
 	int pen_x = x;
 
-	while (*text) {
-		unsigned int character = *text++;
+	for (i = 0; text[i];) {
+		i += utf8_to_ucs2(&text[i], &character);
 
 		if (!texture_atlas_exists(font->tex_atlas, character)) {
 			if (!atlas_add_glyph(font, character)) {
 				continue;
 			}
 		}
-
-		bp2d_rectangle rect;
-		int bitmap_left, bitmap_top;
-		int advance_x, advance_y;
 
 		if (!texture_atlas_get(font->tex_atlas, character,
 			&rect, &bitmap_left, &bitmap_top,
@@ -161,21 +176,22 @@ int vita2d_pgf_draw_textf(vita2d_pgf *font, int x, int y, unsigned int color, fl
 
 void vita2d_pgf_text_dimensions(vita2d_pgf *font, float scale, const char *text, int *width, int *height)
 {
+	int i;
+	unsigned int character;
+	bp2d_rectangle rect;
+	int bitmap_left, bitmap_top;
+	int advance_x, advance_y;
 	int pen_x = 0;
 	int max_h = 0;
 
-	while (*text) {
-		unsigned int character = *text++;
+	for (i = 0; text[i];) {
+		i += utf8_to_ucs2(&text[i], &character);
 
 		if (!texture_atlas_exists(font->tex_atlas, character)) {
 			if (!atlas_add_glyph(font, character)) {
 				continue;
 			}
 		}
-
-		bp2d_rectangle rect;
-		int bitmap_left, bitmap_top;
-		int advance_x, advance_y;
 
 		if (!texture_atlas_get(font->tex_atlas, character,
 			&rect, &bitmap_left, &bitmap_top,
