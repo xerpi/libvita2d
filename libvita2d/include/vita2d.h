@@ -114,7 +114,7 @@ vita2d_font *vita2d_load_font_file(const char *filename);
 vita2d_font *vita2d_load_font_mem(const void *buffer, unsigned int size);
 void vita2d_free_font(vita2d_font *font);
 int vita2d_font_draw_text(vita2d_font *font, int x, int y, unsigned int color, unsigned int size, const char *text);
-void vita2d_font_draw_textf(vita2d_font *font, int x, int y, unsigned int color, unsigned int size, const char *text, ...);
+int vita2d_font_draw_textf(vita2d_font *font, int x, int y, unsigned int color, unsigned int size, const char *text, ...);
 void vita2d_font_text_dimensions(vita2d_font *font, unsigned int size, const char *text, int *width, int *height);
 int vita2d_font_text_width(vita2d_font *font, unsigned int size, const char *text);
 int vita2d_font_text_height(vita2d_font *font, unsigned int size, const char *text);
