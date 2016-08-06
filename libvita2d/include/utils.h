@@ -8,6 +8,7 @@
 /* Misc utils */
 #define ALIGN(x, a)	(((x) + ((a) - 1)) & ~((a) - 1))
 #define	UNUSED(a)	(void)(a)
+#define SCREEN_DPI	220
 
 /* Font utils */
 int utf8_to_ucs2(const char *utf8, unsigned int *character);

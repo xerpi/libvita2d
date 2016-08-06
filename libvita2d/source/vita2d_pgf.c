@@ -19,6 +19,7 @@ typedef struct vita2d_pgf {
 	SceFontLibHandle lib_handle;
 	SceFontHandle font_handle;
 	texture_atlas *atlas;
+	float vsize;
 } vita2d_pgf;
 
 static void *pgf_alloc_func(void *userdata, unsigned int size)
@@ -34,6 +35,7 @@ static void pgf_free_func(void *userdata, void *p)
 vita2d_pgf *vita2d_load_default_pgf()
 {
 	unsigned int error;
+	SceFontInfo fontinfo;
 
 	vita2d_pgf *font = malloc(sizeof(*font));
 	if (!font)
@@ -65,6 +67,10 @@ vita2d_pgf *vita2d_load_default_pgf()
 		free(font);
 		return NULL;
 	}
+
+	sceFontGetFontInfo(font->font_handle, &fontinfo);
+	font->vsize = (fontinfo.fontStyle.fontV / fontinfo.fontStyle.fontVRes)
+		* SCREEN_DPI;
 
 	font->atlas = texture_atlas_create(ATLAS_DEFAULT_W, ATLAS_DEFAULT_H,
 		SCE_GXM_TEXTURE_FORMAT_U8_R111);
@@ -133,7 +139,6 @@ int generic_pgf_draw_text(vita2d_pgf *font, int draw, int *height,
 	bp2d_rectangle rect;
 	texture_atlas_entry_data data;
 	vita2d_texture *tex = font->atlas->texture;
-	const int size = 20;
 	int start_x = x;
 	int max_x = 0;
 	int pen_x = x;
@@ -146,7 +151,7 @@ int generic_pgf_draw_text(vita2d_pgf *font, int draw, int *height,
 			if (pen_x > max_x)
 				max_x = pen_x;
 			pen_x = start_x;
-			pen_y += size;
+			pen_y += font->vsize * scale;
 			continue;
 		}
 
@@ -177,7 +182,7 @@ int generic_pgf_draw_text(vita2d_pgf *font, int draw, int *height,
 		max_x = pen_x;
 
 	if (height)
-		*height = pen_y + size - y;
+		*height = pen_y + font->vsize * scale - y;
 
 	return max_x - x;
 }
