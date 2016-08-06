@@ -229,11 +229,11 @@ static int generic_font_draw_text(vita2d_font *font, int draw,
 	vita2d_texture *tex = font->atlas->texture;
 
 	int i;
+	unsigned int character;
 	int start_x = x;
 	int max_x = 0;
 	int pen_x = x;
 	int pen_y = y;
-
 	bp2d_rectangle rect;
 	texture_atlas_entry_data data;
 
@@ -247,8 +247,10 @@ static int generic_font_draw_text(vita2d_font *font, int draw,
 	use_kerning = FT_HAS_KERNING(face);
 	charmap_index = FT_Get_Charmap_Index(face->charmap);
 
-	for (i = 0; text[i]; i++) {
-		if (text[i] == '\n') {
+	for (i = 0; text[i];) {
+		i += utf8_to_ucs2(&text[i], &character);
+
+		if (character == '\n') {
 			if (pen_x > max_x)
 				max_x = pen_x;
 			pen_x = start_x;
@@ -259,7 +261,7 @@ static int generic_font_draw_text(vita2d_font *font, int draw,
 		glyph_index = FTC_CMapCache_Lookup(font->cmapcache,
 						   (FTC_FaceID)font,
 						   charmap_index,
-						   text[i]);
+						   character);
 
 		if (use_kerning && previous && glyph_index) {
 			FT_Vector delta;

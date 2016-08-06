@@ -9,6 +9,9 @@
 #define ALIGN(x, a)	(((x) + ((a) - 1)) & ~((a) - 1))
 #define	UNUSED(a)	(void)(a)
 
+/* Font utils */
+int utf8_to_ucs2(const char *utf8, unsigned int *character);
+
 /* GPU utils */
 void *gpu_alloc(SceKernelMemBlockType type, unsigned int size, unsigned int alignment, unsigned int attribs, SceUID *uid);
 void gpu_free(SceUID uid);
