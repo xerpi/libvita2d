@@ -27,7 +27,7 @@ texture_atlas *texture_atlas_create(int width, int height, SceGxmTextureFormat f
 
 	vita2d_texture_set_filters(atlas->texture,
 				   SCE_GXM_TEXTURE_FILTER_POINT,
-				   SCE_GXM_TEXTURE_FILTER_POINT);
+				   SCE_GXM_TEXTURE_FILTER_LINEAR);
 
 	return atlas;
 }
