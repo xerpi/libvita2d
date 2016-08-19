@@ -11,7 +11,7 @@
 #define SCREEN_DPI	220
 
 /* Font utils */
-int utf8_to_ucs2(const char *utf8, unsigned int *character);
+uint32_t utf8_character(const char **unicode);
 
 /* GPU utils */
 void *gpu_alloc(SceKernelMemBlockType type, unsigned int size, unsigned int alignment, unsigned int attribs, SceUID *uid);
@@ -46,5 +46,6 @@ void matrix_init_orthographic(float *m, float left, float right, float bottom, f
 void matrix_init_frustum(float *m, float left, float right, float bottom, float top, float near, float far);
 void matrix_init_perspective(float *m, float fov, float aspect, float near, float far);
 
+/* Text utils */
 
 #endif
