@@ -36,12 +36,12 @@ static int tex_format_to_bytespp(SceGxmTextureFormat format)
 	}
 }
 
-vita2d_texture *vita2d_create_empty_texture(unsigned int w, unsigned int h)
+vita2d_texture *vita2d_create_empty_texture_advanced(unsigned int w, unsigned int h, SceKernelMemBlockType memtype)
 {
-	return vita2d_create_empty_texture_format(w, h, SCE_GXM_TEXTURE_FORMAT_A8B8G8R8);
+	return vita2d_create_empty_texture_format_advanced(w, h, SCE_GXM_TEXTURE_FORMAT_A8B8G8R8, memtype);
 }
 
-vita2d_texture *vita2d_create_empty_texture_format(unsigned int w, unsigned int h, SceGxmTextureFormat format)
+vita2d_texture *vita2d_create_empty_texture_format_advanced(unsigned int w, unsigned int h, SceGxmTextureFormat format, SceKernelMemBlockType memtype)
 {
 	if (w > GXM_TEX_MAX_SIZE || h > GXM_TEX_MAX_SIZE)
 		return NULL;
@@ -54,7 +54,7 @@ vita2d_texture *vita2d_create_empty_texture_format(unsigned int w, unsigned int 
 
 	/* Allocate a GPU buffer for the texture */
 	void *texture_data = gpu_alloc(
-		SCE_KERNEL_MEMBLOCK_TYPE_USER_CDRAM_RW,
+		memtype,
 		tex_size,
 		SCE_GXM_TEXTURE_ALIGNMENT,
 		SCE_GXM_MEMORY_ATTRIB_READ,
@@ -82,7 +82,7 @@ vita2d_texture *vita2d_create_empty_texture_format(unsigned int w, unsigned int 
 		const int pal_size = 256 * sizeof(uint32_t);
 
 		void *texture_palette = gpu_alloc(
-			SCE_KERNEL_MEMBLOCK_TYPE_USER_CDRAM_RW,
+			memtype,
 			pal_size,
 			SCE_GXM_PALETTE_ALIGNMENT,
 			SCE_GXM_MEMORY_ATTRIB_READ,

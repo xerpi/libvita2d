@@ -6,7 +6,7 @@
 #include <jpeglib.h>
 #include "vita2d.h"
 
-static vita2d_texture *_vita2d_load_JPEG_generic(struct jpeg_decompress_struct *jinfo, struct jpeg_error_mgr *jerr)
+static vita2d_texture *_vita2d_load_JPEG_generic(struct jpeg_decompress_struct *jinfo, struct jpeg_error_mgr *jerr, SceKernelMemBlockType memtype)
 {
 	float downScaleWidth = (float)jinfo->image_width / 4096;
 	float downScaleHeight = (float)jinfo->image_height / 4096;
@@ -26,10 +26,11 @@ static vita2d_texture *_vita2d_load_JPEG_generic(struct jpeg_decompress_struct *
 
 	jpeg_start_decompress(jinfo);
 
-	vita2d_texture *texture = vita2d_create_empty_texture_format(
+	vita2d_texture *texture = vita2d_create_empty_texture_format_advanced(
 		jinfo->output_width,
 		jinfo->output_height,
-		SCE_GXM_TEXTURE_FORMAT_U8U8U8_BGR);
+		SCE_GXM_TEXTURE_FORMAT_U8U8U8_BGR,
+		memtype);
 
 	if (!texture) {
 		jpeg_abort_decompress(jinfo);
@@ -51,7 +52,7 @@ static vita2d_texture *_vita2d_load_JPEG_generic(struct jpeg_decompress_struct *
 }
 
 
-vita2d_texture *vita2d_load_JPEG_file(const char *filename)
+vita2d_texture *vita2d_load_JPEG_file_advanced(const char *filename, SceKernelMemBlockType memtype)
 {
 	FILE *fp;
 	if ((fp = fopen(filename, "rb")) < 0) {
@@ -75,7 +76,7 @@ vita2d_texture *vita2d_load_JPEG_file(const char *filename)
 	jpeg_stdio_src(&jinfo, fp);
 	jpeg_read_header(&jinfo, 1);
 
-	vita2d_texture *texture = _vita2d_load_JPEG_generic(&jinfo, &jerr);
+	vita2d_texture *texture = _vita2d_load_JPEG_generic(&jinfo, &jerr, memtype);
 
 	jpeg_destroy_decompress(&jinfo);
 
@@ -84,7 +85,7 @@ vita2d_texture *vita2d_load_JPEG_file(const char *filename)
 }
 
 
-vita2d_texture *vita2d_load_JPEG_buffer(const void *buffer, unsigned long buffer_size)
+vita2d_texture *vita2d_load_JPEG_buffer_advanced(const void *buffer, unsigned long buffer_size, SceKernelMemBlockType memtype)
 {
 	unsigned int magic = *(unsigned int *)buffer;
 	if (magic != 0xE0FFD8FF && magic != 0xE1FFD8FF) {
@@ -100,7 +101,7 @@ vita2d_texture *vita2d_load_JPEG_buffer(const void *buffer, unsigned long buffer
 	jpeg_mem_src(&jinfo, (void *)buffer, buffer_size);
 	jpeg_read_header(&jinfo, 1);
 
-	vita2d_texture *texture = _vita2d_load_JPEG_generic(&jinfo, &jerr);
+	vita2d_texture *texture = _vita2d_load_JPEG_generic(&jinfo, &jerr, memtype);
 
 	jpeg_destroy_decompress(&jinfo);
 
