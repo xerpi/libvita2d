@@ -69,9 +69,12 @@ void vita2d_draw_line(float x0, float y0, float x1, float y1, unsigned int color
 void vita2d_draw_rectangle(float x, float y, float w, float h, unsigned int color);
 void vita2d_draw_fill_circle(float x, float y, float radius, unsigned int color);
 
-vita2d_texture *vita2d_create_empty_texture(unsigned int w, unsigned int h);
-vita2d_texture *vita2d_create_empty_texture_format(unsigned int w, unsigned int h, SceGxmTextureFormat format);
+vita2d_texture *vita2d_create_empty_texture_advanced(unsigned int w, unsigned int h, SceKernelMemBlockType memtype);
+vita2d_texture *vita2d_create_empty_texture_format_advanced(unsigned int w, unsigned int h, SceGxmTextureFormat format, SceKernelMemBlockType memtype);
 void vita2d_free_texture(vita2d_texture *texture);
+
+#define vita2d_create_empty_texture(x,y) vita2d_create_empty_texture_advanced(x,y,SCE_KERNEL_MEMBLOCK_TYPE_USER_CDRAM_RW)
+#define vita2d_create_empty_texture_format(w,h,x) vita2d_create_empty_texture_format_advanced(w,h,x,SCE_KERNEL_MEMBLOCK_TYPE_USER_CDRAM_RW)
 
 unsigned int vita2d_texture_get_width(const vita2d_texture *texture);
 unsigned int vita2d_texture_get_height(const vita2d_texture *texture);
@@ -101,14 +104,21 @@ void vita2d_draw_texture_tint_part_scale(const vita2d_texture *texture, float x,
 void vita2d_draw_texture_tint_scale_rotate_hotspot(const vita2d_texture *texture, float x, float y, float x_scale, float y_scale, float rad, float center_x, float center_y, unsigned int color);
 void vita2d_draw_texture_tint_scale_rotate(const vita2d_texture *texture, float x, float y, float x_scale, float y_scale, float rad, unsigned int color);
 
-vita2d_texture *vita2d_load_PNG_file(const char *filename);
-vita2d_texture *vita2d_load_PNG_buffer(const void *buffer);
+vita2d_texture *vita2d_load_PNG_file_advanced(const char *filename, SceKernelMemBlockType memtype);
+vita2d_texture *vita2d_load_PNG_buffer_advanced(const void *buffer, SceKernelMemBlockType memtype);
 
-vita2d_texture *vita2d_load_JPEG_file(const char *filename);
-vita2d_texture *vita2d_load_JPEG_buffer(const void *buffer, unsigned long buffer_size);
+vita2d_texture *vita2d_load_JPEG_file_advanced(const char *filename, SceKernelMemBlockType memtype);
+vita2d_texture *vita2d_load_JPEG_buffer_advanced(const void *buffer, unsigned long buffer_size, SceKernelMemBlockType memtype);
 
-vita2d_texture *vita2d_load_BMP_file(const char *filename);
-vita2d_texture *vita2d_load_BMP_buffer(const void *buffer);
+vita2d_texture *vita2d_load_BMP_file_advanced(const char *filename, SceKernelMemBlockType memtype);
+vita2d_texture *vita2d_load_BMP_buffer_advanced(const void *buffer, SceKernelMemBlockType memtype);
+
+#define vita2d_load_PNG_file(x) vita2d_load_PNG_file_advanced(x,SCE_KERNEL_MEMBLOCK_TYPE_USER_CDRAM_RW)
+#define vita2d_load_PNG_buffer(x) vita2d_load_PNG_buffer_advanced(x,SCE_KERNEL_MEMBLOCK_TYPE_USER_CDRAM_RW)
+#define vita2d_load_JPEG_file(x) vita2d_load_JPEG_file_advanced(x,SCE_KERNEL_MEMBLOCK_TYPE_USER_CDRAM_RW)
+#define vita2d_load_JPEG_buffer(x) vita2d_load_JPEG_buffer_advanced(x,SCE_KERNEL_MEMBLOCK_TYPE_USER_CDRAM_RW)
+#define vita2d_load_BMP_file(x) vita2d_load_BMP_file_advanced(x,SCE_KERNEL_MEMBLOCK_TYPE_USER_CDRAM_RW)
+#define vita2d_load_BMP_buffer(x) vita2d_load_BMP_buffer_advanced(x,SCE_KERNEL_MEMBLOCK_TYPE_USER_CDRAM_RW)
 
 vita2d_font *vita2d_load_font_file(const char *filename);
 vita2d_font *vita2d_load_font_mem(const void *buffer, unsigned int size);

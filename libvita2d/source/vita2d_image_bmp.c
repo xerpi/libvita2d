@@ -35,7 +35,8 @@ static vita2d_texture *_vita2d_load_BMP_generic(
 	BITMAPINFOHEADER *bmp_ih,
 	void *user_data,
 	void (*seek_fn)(void *user_data, unsigned int offset),
-	void (*read_fn)(void *user_data, void *buffer, unsigned int length))
+	void (*read_fn)(void *user_data, void *buffer, unsigned int length),
+	SceKernelMemBlockType memtype)
 {
 	unsigned int row_stride = bmp_ih->biWidth * (bmp_ih->biBitCount/8);
 	if (row_stride%4 != 0) {
@@ -46,9 +47,10 @@ static vita2d_texture *_vita2d_load_BMP_generic(
 	if (!buffer)
 		return NULL;
 
-	vita2d_texture *texture = vita2d_create_empty_texture(
+	vita2d_texture *texture = vita2d_create_empty_texture_advanced(
 		bmp_ih->biWidth,
-		bmp_ih->biHeight);
+		bmp_ih->biHeight,
+		memtype);
 
 	if (!texture) {
 		free(buffer);
@@ -119,7 +121,7 @@ static void _vita2d_read_bmp_buffer_read_fn(void *user_data, void *buffer, unsig
 	*(unsigned int *)user_data += length;
 }
 
-vita2d_texture *vita2d_load_BMP_file(const char *filename)
+vita2d_texture *vita2d_load_BMP_file_advanced(const char *filename, SceKernelMemBlockType memtype)
 {
 	SceUID fd;
 	if ((fd = sceIoOpen(filename, SCE_O_RDONLY, 0777)) < 0) {
@@ -139,7 +141,8 @@ vita2d_texture *vita2d_load_BMP_file(const char *filename)
 		&bmp_ih,
 		(void *)&fd,
 		_vita2d_read_bmp_file_seek_fn,
-		_vita2d_read_bmp_file_read_fn);
+		_vita2d_read_bmp_file_read_fn,
+		memtype);
 
 	sceIoClose(fd);
 	return texture;
@@ -150,7 +153,7 @@ exit_error:
 	return NULL;
 }
 
-vita2d_texture *vita2d_load_BMP_buffer(const void *buffer)
+vita2d_texture *vita2d_load_BMP_buffer_advanced(const void *buffer, SceKernelMemBlockType memtype)
 {
 	BITMAPFILEHEADER bmp_fh;
 	memcpy(&bmp_fh, buffer, sizeof(BITMAPFILEHEADER));
@@ -167,7 +170,8 @@ vita2d_texture *vita2d_load_BMP_buffer(const void *buffer)
 		&bmp_ih,
 		(void *)&buffer_address,
 		_vita2d_read_bmp_buffer_seek_fn,
-		_vita2d_read_bmp_buffer_read_fn);
+		_vita2d_read_bmp_buffer_read_fn,
+		memtype);
 
 	return texture;
 exit_error:

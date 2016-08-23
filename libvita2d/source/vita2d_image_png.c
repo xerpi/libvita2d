@@ -20,7 +20,7 @@ static void _vita2d_read_png_buffer_fn(png_structp png_ptr, png_bytep data, png_
 	*address += length;
 }
 
-static vita2d_texture *_vita2d_load_PNG_generic(const void *io_ptr, png_rw_ptr read_data_fn)
+static vita2d_texture *_vita2d_load_PNG_generic(const void *io_ptr, png_rw_ptr read_data_fn, SceKernelMemBlockType memtype)
 {
 	png_structp png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 	if (png_ptr == NULL) {
@@ -88,7 +88,7 @@ static vita2d_texture *_vita2d_load_PNG_generic(const void *io_ptr, png_rw_ptr r
 	if (!row_ptrs)
 		goto error_alloc_rows;
 
-	vita2d_texture *texture = vita2d_create_empty_texture(width, height);
+	vita2d_texture *texture = vita2d_create_empty_texture_advanced(width, height, memtype);
 	if (!texture)
 		goto error_create_tex;
 
@@ -118,7 +118,7 @@ error_create_read:
 }
 
 
-vita2d_texture *vita2d_load_PNG_file(const char *filename)
+vita2d_texture *vita2d_load_PNG_file_advanced(const char *filename, SceKernelMemBlockType memtype)
 {
 	png_byte pngsig[PNG_SIGSIZE];
 	SceUID fd;
@@ -135,7 +135,7 @@ vita2d_texture *vita2d_load_PNG_file(const char *filename)
 		goto exit_close;
 	}
 
-	vita2d_texture *texture = _vita2d_load_PNG_generic((void *)&fd, _vita2d_read_png_file_fn);
+	vita2d_texture *texture = _vita2d_load_PNG_generic((void *)&fd, _vita2d_read_png_file_fn, memtype);
 	sceIoClose(fd);
 	return texture;
 
@@ -145,7 +145,7 @@ exit_error:
 	return NULL;
 }
 
-vita2d_texture *vita2d_load_PNG_buffer(const void *buffer)
+vita2d_texture *vita2d_load_PNG_buffer_advanced(const void *buffer, SceKernelMemBlockType memtype)
 {
 	if (png_sig_cmp((png_byte *) buffer, 0, PNG_SIGSIZE) != 0) {
 		return NULL;
@@ -153,5 +153,5 @@ vita2d_texture *vita2d_load_PNG_buffer(const void *buffer)
 
 	unsigned int buffer_address = (unsigned int)buffer + PNG_SIGSIZE;
 
-	return _vita2d_load_PNG_generic((void *)&buffer_address, _vita2d_read_png_buffer_fn);
+	return _vita2d_load_PNG_generic((void *)&buffer_address, _vita2d_read_png_buffer_fn, memtype);
 }
