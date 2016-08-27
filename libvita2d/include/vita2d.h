@@ -69,6 +69,8 @@ void vita2d_draw_line(float x0, float y0, float x1, float y1, unsigned int color
 void vita2d_draw_rectangle(float x, float y, float w, float h, unsigned int color);
 void vita2d_draw_fill_circle(float x, float y, float radius, unsigned int color);
 
+void vita2d_texture_set_alloc_memblock_type(SceKernelMemBlockType type);
+SceKernelMemBlockType vita2d_texture_get_alloc_memblock_type();
 vita2d_texture *vita2d_create_empty_texture(unsigned int w, unsigned int h);
 vita2d_texture *vita2d_create_empty_texture_format(unsigned int w, unsigned int h, SceGxmTextureFormat format);
 void vita2d_free_texture(vita2d_texture *texture);
