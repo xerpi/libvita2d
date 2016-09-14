@@ -24,7 +24,7 @@ typedef struct vita2d_pgf {
 
 static void *pgf_alloc_func(void *userdata, unsigned int size)
 {
-	return memalign(sizeof(int), size + sizeof(int));
+	return memalign(sizeof(int), (size + sizeof(int) - 1) / sizeof(int) * sizeof(int) );
 }
 
 static void pgf_free_func(void *userdata, void *p)
@@ -32,11 +32,19 @@ static void pgf_free_func(void *userdata, void *p)
 	free(p);
 }
 
-vita2d_pgf *vita2d_load_default_pgf()
-{
-	unsigned int error;
+static void vita2d_load_pgf_post(vita2d_pgf *font) {
 	SceFontInfo fontinfo;
 
+	sceFontGetFontInfo(font->font_handle, &fontinfo);
+	font->vsize = (fontinfo.fontStyle.fontV / fontinfo.fontStyle.fontVRes)
+		* SCREEN_DPI;
+
+	font->atlas = texture_atlas_create(ATLAS_DEFAULT_W, ATLAS_DEFAULT_H,
+		SCE_GXM_TEXTURE_FORMAT_U8_R111);
+}
+
+static vita2d_pgf *vita2d_load_pgf_pre() {
+	unsigned int error;
 	vita2d_pgf *font = malloc(sizeof(*font));
 	if (!font)
 		return NULL;
@@ -60,6 +68,16 @@ vita2d_pgf *vita2d_load_default_pgf()
 		free(font);
 		return NULL;
 	}
+	return font;
+}
+
+vita2d_pgf *vita2d_load_default_pgf()
+{
+	unsigned int error;
+	vita2d_pgf *font = vita2d_load_pgf_pre();
+
+	if (!font)
+		return NULL;
 
 	font->font_handle = sceFontOpen(font->lib_handle, 0, 0, &error);
 	if (error != 0) {
@@ -68,12 +86,27 @@ vita2d_pgf *vita2d_load_default_pgf()
 		return NULL;
 	}
 
-	sceFontGetFontInfo(font->font_handle, &fontinfo);
-	font->vsize = (fontinfo.fontStyle.fontV / fontinfo.fontStyle.fontVRes)
-		* SCREEN_DPI;
+	vita2d_load_pgf_post(font);
 
-	font->atlas = texture_atlas_create(ATLAS_DEFAULT_W, ATLAS_DEFAULT_H,
-		SCE_GXM_TEXTURE_FORMAT_U8_R111);
+	return font;
+}
+
+vita2d_pgf *vita2d_load_custom_pgf(const char *path)
+{
+	unsigned int error;
+	vita2d_pgf *font = vita2d_load_pgf_pre();
+
+	if (!font)
+		return NULL;
+
+	font->font_handle = sceFontOpenUserFile(font->lib_handle, (char *)path, 1, &error);
+	if (error != 0) {
+		sceFontDoneLib(font->lib_handle);
+		free(font);
+		return NULL;
+	}
+
+	vita2d_load_pgf_post(font);
 
 	return font;
 }
