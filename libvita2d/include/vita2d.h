@@ -35,6 +35,8 @@ typedef struct vita2d_texture {
 	SceGxmTexture gxm_tex;
 	SceUID data_UID;
 	SceUID palette_UID;
+        SceGxmRenderTarget *gxm_rtgt;
+        SceGxmColorSurface gxm_sfc;
 } vita2d_texture;
 
 typedef struct vita2d_font vita2d_font;
@@ -49,6 +51,7 @@ void vita2d_clear_screen();
 void vita2d_swap_buffers();
 
 void vita2d_start_drawing();
+void vita2d_start_drawing_advanced(vita2d_texture *target);
 void vita2d_end_drawing();
 
 int vita2d_common_dialog_update();

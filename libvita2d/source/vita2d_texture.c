@@ -38,7 +38,7 @@ static int tex_format_to_bytespp(SceGxmTextureFormat format)
 }
 
 void vita2d_texture_set_alloc_memblock_type(SceKernelMemBlockType type){
-	MemBlockType = (type == 0) ? SCE_KERNEL_MEMBLOCK_TYPE_USER_CDRAM_RW : type;	
+	MemBlockType = (type == 0) ? SCE_KERNEL_MEMBLOCK_TYPE_USER_CDRAM_RW : type;
 }
 
 SceKernelMemBlockType vita2d_texture_get_alloc_memblock_type(){
@@ -66,10 +66,27 @@ vita2d_texture *vita2d_create_empty_texture_format(unsigned int w, unsigned int 
 		MemBlockType,
 		tex_size,
 		SCE_GXM_TEXTURE_ALIGNMENT,
-		SCE_GXM_MEMORY_ATTRIB_READ,
+		SCE_GXM_MEMORY_ATTRIB_READ | SCE_GXM_MEMORY_ATTRIB_WRITE,
 		&texture->data_UID);
 
 	if (!texture_data) {
+		free(texture);
+		return NULL;
+	}
+
+	int err = sceGxmColorSurfaceInit(
+		&texture->gxm_sfc,
+		SCE_GXM_COLOR_FORMAT_A8B8G8R8,
+		SCE_GXM_COLOR_SURFACE_LINEAR,
+		SCE_GXM_COLOR_SURFACE_SCALE_NONE,
+		SCE_GXM_OUTPUT_REGISTER_SIZE_32BIT,
+		w,
+		h,
+		w,
+		texture_data
+	);
+
+	if (err < 0) {
 		free(texture);
 		return NULL;
 	}
@@ -109,6 +126,24 @@ vita2d_texture *vita2d_create_empty_texture_format(unsigned int w, unsigned int 
 	} else {
 		texture->palette_UID = 0;
 	}
+
+	SceGxmRenderTarget *tgt = NULL;
+
+	// set up parameters
+	SceGxmRenderTargetParams renderTargetParams;
+	memset(&renderTargetParams, 0, sizeof(SceGxmRenderTargetParams));
+	renderTargetParams.flags = 0;
+	renderTargetParams.width = w;
+	renderTargetParams.height = h;
+	renderTargetParams.scenesPerFrame = 1;
+	renderTargetParams.multisampleMode = SCE_GXM_MULTISAMPLE_NONE;
+	renderTargetParams.multisampleLocations = 0;
+	renderTargetParams.driverMemBlock = -1;
+
+	// create the render target
+	err = sceGxmCreateRenderTarget(&renderTargetParams, &tgt);
+
+	texture->gxm_rtgt = tgt;
 
 	return texture;
 }
