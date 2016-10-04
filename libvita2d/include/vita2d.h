@@ -4,6 +4,7 @@
 #include <psp2/gxm.h>
 #include <psp2/types.h>
 #include <psp2/kernel/sysmem.h>
+#include <psp2/pgf.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -36,6 +37,11 @@ typedef struct vita2d_texture {
 	SceUID data_UID;
 	SceUID palette_UID;
 } vita2d_texture;
+
+typedef struct vita2d_system_pgf_config {
+	SceFontLanguageCode code;
+	int (*in_font_group)(unsigned int c);
+} vita2d_system_pgf_config;
 
 typedef struct vita2d_font vita2d_font;
 typedef struct vita2d_pgf vita2d_pgf;
@@ -124,6 +130,7 @@ int vita2d_font_text_width(vita2d_font *font, unsigned int size, const char *tex
 int vita2d_font_text_height(vita2d_font *font, unsigned int size, const char *text);
 
 /* PGF functions are weak imports at the moment, they have to be resolved manually */
+vita2d_pgf *vita2d_load_system_pgf(int numFonts, const vita2d_system_pgf_config *configs);
 vita2d_pgf *vita2d_load_default_pgf();
 vita2d_pgf *vita2d_load_custom_pgf(const char *path);
 void vita2d_free_pgf(vita2d_pgf *font);

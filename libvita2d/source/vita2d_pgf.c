@@ -15,9 +15,15 @@
 #define ATLAS_DEFAULT_W 512
 #define ATLAS_DEFAULT_H 512
 
+typedef struct vita2d_pgf_font_handle {
+	SceFontHandle font_handle;
+	int (*in_font_group)(unsigned int c);
+	struct vita2d_pgf_font_handle *next;
+} vita2d_pgf_font_handle;
+
 typedef struct vita2d_pgf {
 	SceFontLibHandle lib_handle;
-	SceFontHandle font_handle;
+	vita2d_pgf_font_handle *font_handle_list;
 	texture_atlas *atlas;
 	float vsize;
 } vita2d_pgf;
@@ -35,7 +41,7 @@ static void pgf_free_func(void *userdata, void *p)
 static void vita2d_load_pgf_post(vita2d_pgf *font) {
 	SceFontInfo fontinfo;
 
-	sceFontGetFontInfo(font->font_handle, &fontinfo);
+	sceFontGetFontInfo(font->font_handle_list->font_handle, &fontinfo);
 	font->vsize = (fontinfo.fontStyle.fontV / fontinfo.fontStyle.fontVRes)
 		* SCREEN_DPI;
 
@@ -43,15 +49,16 @@ static void vita2d_load_pgf_post(vita2d_pgf *font) {
 		SCE_GXM_TEXTURE_FORMAT_U8_R111);
 }
 
-static vita2d_pgf *vita2d_load_pgf_pre() {
+static vita2d_pgf *vita2d_load_pgf_pre(int numFonts) {
 	unsigned int error;
 	vita2d_pgf *font = malloc(sizeof(*font));
 	if (!font)
 		return NULL;
+	memset(font, 0, sizeof(vita2d_pgf));
 
 	SceFontNewLibParams params = {
 		font,
-		1,
+		numFonts,
 		NULL,
 		pgf_alloc_func,
 		pgf_free_func,
@@ -71,40 +78,99 @@ static vita2d_pgf *vita2d_load_pgf_pre() {
 	return font;
 }
 
-vita2d_pgf *vita2d_load_default_pgf()
+vita2d_pgf *vita2d_load_system_pgf(int numFonts, const vita2d_system_pgf_config *configs)
 {
+	if (numFonts < 1) {
+		return NULL;
+	}
+
 	unsigned int error;
-	vita2d_pgf *font = vita2d_load_pgf_pre();
+
+	vita2d_pgf *font = vita2d_load_pgf_pre(numFonts);
 
 	if (!font)
 		return NULL;
 
-	font->font_handle = sceFontOpen(font->lib_handle, 0, 0, &error);
-	if (error != 0) {
-		sceFontDoneLib(font->lib_handle);
-		free(font);
-		return NULL;
+	SceFontStyle style = {0};
+	style.fontH = 10;
+	style.fontV = 10;
+
+	vita2d_pgf_font_handle *tmp = NULL;
+
+	for (int i = 0; i < numFonts; i++) {
+		style.fontLanguage = configs[i].code;
+		int index = sceFontFindOptimumFont(font->lib_handle, &style, &error);
+		if (error != 0)
+			goto cleanup;
+
+		SceFontHandle handle = sceFontOpen(font->lib_handle, index, 0, &error);
+		if (error != 0)
+			goto cleanup;
+
+		if (font->font_handle_list == NULL) {
+			tmp = font->font_handle_list = malloc(sizeof(vita2d_pgf_font_handle));
+		} else {
+			tmp = tmp->next = malloc(sizeof(vita2d_pgf_font_handle));
+		}
+		if (!tmp) {
+			sceFontClose(handle);
+			goto cleanup;
+		}
+
+		memset(tmp, 0, sizeof(vita2d_pgf_font_handle));
+		tmp->font_handle = handle;
+		tmp->in_font_group = configs[i].in_font_group;
 	}
 
 	vita2d_load_pgf_post(font);
 
 	return font;
+
+cleanup:
+	tmp = font->font_handle_list;
+	while (tmp) {
+		sceFontClose(tmp->font_handle);
+		free(tmp);
+		tmp = tmp->next;
+	}
+	sceFontDoneLib(font->lib_handle);
+	free(font);
+	return NULL;
+}
+
+vita2d_pgf *vita2d_load_default_pgf()
+{
+	vita2d_system_pgf_config configs[] = {
+		{SCE_FONT_LANGUAGE_DEFAULT, NULL},
+	};
+
+	return vita2d_load_system_pgf(1, configs);
 }
 
 vita2d_pgf *vita2d_load_custom_pgf(const char *path)
 {
 	unsigned int error;
-	vita2d_pgf *font = vita2d_load_pgf_pre();
+	vita2d_pgf *font = vita2d_load_pgf_pre(1);
 
 	if (!font)
 		return NULL;
 
-	font->font_handle = sceFontOpenUserFile(font->lib_handle, (char *)path, 1, &error);
-	if (error != 0) {
-		sceFontDoneLib(font->lib_handle);
+	vita2d_pgf_font_handle *handle = malloc(sizeof(vita2d_pgf_font_handle));
+	if (!handle) {
 		free(font);
 		return NULL;
 	}
+
+	SceFontHandle font_handle = sceFontOpenUserFile(font->lib_handle, (char *)path, 1, &error);
+	if (error != 0) {
+		sceFontDoneLib(font->lib_handle);
+		free(handle);
+		free(font);
+		return NULL;
+	}
+	memset(handle, 0, sizeof(vita2d_pgf_font_handle));
+	handle->font_handle = font_handle;
+	font->font_handle_list = handle;
 
 	vita2d_load_pgf_post(font);
 
@@ -114,7 +180,12 @@ vita2d_pgf *vita2d_load_custom_pgf(const char *path)
 void vita2d_free_pgf(vita2d_pgf *font)
 {
 	if (font) {
-		sceFontClose(font->font_handle);
+		vita2d_pgf_font_handle *tmp = font->font_handle_list;
+		while (tmp) {
+			sceFontClose(tmp->font_handle);
+			free(tmp);
+			tmp = tmp->next;
+		}
 		sceFontDoneLib(font->lib_handle);
 		texture_atlas_free(font->atlas);
 		free(font);
@@ -123,12 +194,22 @@ void vita2d_free_pgf(vita2d_pgf *font)
 
 static int atlas_add_glyph(vita2d_pgf *font, unsigned int character)
 {
+	SceFontHandle font_handle = font->font_handle_list->font_handle;
 	SceFontCharInfo char_info;
 	bp2d_position position;
 	void *texture_data;
 	vita2d_texture *tex = font->atlas->texture;
 
-	if (sceFontGetCharInfo(font->font_handle, character, &char_info) < 0)
+	vita2d_pgf_font_handle *tmp = font->font_handle_list;
+	while (tmp) {
+		if (tmp->in_font_group == NULL || tmp->in_font_group(character)) {
+			font_handle = tmp->font_handle;
+			break;
+		}
+		tmp = tmp->next;
+	}
+
+	if (sceFontGetCharInfo(font_handle, character, &char_info) < 0)
 		return 0;
 
 	bp2d_size size = {
@@ -160,7 +241,7 @@ static int atlas_add_glyph(vita2d_pgf *font, unsigned int character)
 	glyph_image.pad = 0;
 	glyph_image.bufferPtr = (unsigned int)texture_data;
 
-	return sceFontGetCharGlyphImage(font->font_handle, character, &glyph_image) == 0;
+	return sceFontGetCharGlyphImage(font_handle, character, &glyph_image) == 0;
 }
 
 int generic_pgf_draw_text(vita2d_pgf *font, int draw, int *height,
