@@ -14,15 +14,16 @@
 
 #define ATLAS_DEFAULT_W 512
 #define ATLAS_DEFAULT_H 512
-#define IS_LATIN_CHAR(c) (((unsigned short)(c) <= 0x00FF) || (0x0400 <= (unsigned short)(c) && (unsigned short)(c) <= 0x04FF))
-#define IS_NOT_HANGUL_CHAR(c) (((unsigned short)(c) < 0x3131) || ((unsigned short)(c) > 0x327F && (unsigned short)(c) < 0xAC00) || ((unsigned short)(c) > 0xD7A3 && (unsigned short)(c) != 0xFFE6))
-#define IS_HANGUL_CHAR(c) !(IS_NOT_HANGUL_CHAR((c)))
+
+typedef struct vita2d_pgf_font_handle {
+	SceFontHandle font_handle;
+	int (*in_font_group)(unsigned int c);
+	struct vita2d_pgf_font_handle *next;
+} vita2d_pgf_font_handle;
 
 typedef struct vita2d_pgf {
 	SceFontLibHandle lib_handle;
-	SceFontHandle font_handle;
-	SceFontHandle font_latin_handle;
-	SceFontHandle font_korean_handle;
+	vita2d_pgf_font_handle *font_handle_list;
 	texture_atlas *atlas;
 	float vsize;
 } vita2d_pgf;
@@ -40,7 +41,7 @@ static void pgf_free_func(void *userdata, void *p)
 static void vita2d_load_pgf_post(vita2d_pgf *font) {
 	SceFontInfo fontinfo;
 
-	sceFontGetFontInfo(font->font_handle, &fontinfo);
+	sceFontGetFontInfo(font->font_handle_list->font_handle, &fontinfo);
 	font->vsize = (fontinfo.fontStyle.fontV / fontinfo.fontStyle.fontVRes)
 		* SCREEN_DPI;
 
@@ -51,9 +52,9 @@ static void vita2d_load_pgf_post(vita2d_pgf *font) {
 static vita2d_pgf *vita2d_load_pgf_pre(int numFonts) {
 	unsigned int error;
 	vita2d_pgf *font = malloc(sizeof(*font));
-	memset(font, 0, sizeof(vita2d_pgf));
 	if (!font)
 		return NULL;
+	memset(font, 0, sizeof(vita2d_pgf));
 
 	SceFontNewLibParams params = {
 		font,
@@ -77,41 +78,73 @@ static vita2d_pgf *vita2d_load_pgf_pre(int numFonts) {
 	return font;
 }
 
-vita2d_pgf *vita2d_load_default_pgf()
+vita2d_pgf *vita2d_load_system_pgf(int numFonts, const vita2d_system_pgf_config *configs)
 {
+	if (numFonts < 1) {
+		return NULL;
+	}
+
 	unsigned int error;
-	vita2d_pgf *font = vita2d_load_pgf_pre(3);
+
+	vita2d_pgf *font = vita2d_load_pgf_pre(numFonts);
 
 	if (!font)
 		return NULL;
 
-	font->font_handle = sceFontOpen(font->lib_handle, 0, 0, &error);
-	if (error != 0) {
-		sceFontDoneLib(font->lib_handle);
-		free(font);
-		return NULL;
-	}
+	SceFontStyle style = {0};
+	style.fontH = 10;
+	style.fontV = 10;
 
-	font->font_latin_handle = sceFontOpen(font->lib_handle, 1, 0, &error);
-	if (error != 0) {
-        sceFontClose(font->font_handle);
-		sceFontDoneLib(font->lib_handle);
-		free(font);
-		return NULL;
-	}
+	vita2d_pgf_font_handle *tmp = NULL;
 
-	font->font_korean_handle = sceFontOpen(font->lib_handle, 17, 0, &error);
-	if (error != 0) {
-        sceFontClose(font->font_handle);
-        sceFontClose(font->font_latin_handle);
-		sceFontDoneLib(font->lib_handle);
-		free(font);
-		return NULL;
+	for (int i = 0; i < numFonts; i++) {
+		style.fontLanguage = configs[i].code;
+		int index = sceFontFindOptimumFont(font->lib_handle, &style, &error);
+		if (error != 0)
+			goto cleanup;
+
+		SceFontHandle handle = sceFontOpen(font->lib_handle, index, 0, &error);
+		if (error != 0)
+			goto cleanup;
+
+		if (font->font_handle_list == NULL) {
+			tmp = font->font_handle_list = malloc(sizeof(vita2d_pgf_font_handle));
+		} else {
+			tmp = tmp->next = malloc(sizeof(vita2d_pgf_font_handle));
+		}
+		if (!tmp) {
+			sceFontClose(handle);
+			goto cleanup;
+		}
+
+		memset(tmp, 0, sizeof(vita2d_pgf_font_handle));
+		tmp->font_handle = handle;
+		tmp->in_font_group = configs[i].in_font_group;
 	}
 
 	vita2d_load_pgf_post(font);
 
 	return font;
+
+cleanup:
+	tmp = font->font_handle_list;
+	while (tmp) {
+		sceFontClose(tmp->font_handle);
+		free(tmp);
+		tmp = tmp->next;
+	}
+	sceFontDoneLib(font->lib_handle);
+	free(font);
+	return NULL;
+}
+
+vita2d_pgf *vita2d_load_default_pgf()
+{
+	vita2d_system_pgf_config configs[] = {
+		{SCE_FONT_LANGUAGE_DEFAULT, NULL},
+	};
+
+	return vita2d_load_system_pgf(1, configs);
 }
 
 vita2d_pgf *vita2d_load_custom_pgf(const char *path)
@@ -122,12 +155,22 @@ vita2d_pgf *vita2d_load_custom_pgf(const char *path)
 	if (!font)
 		return NULL;
 
-	font->font_handle = sceFontOpenUserFile(font->lib_handle, (char *)path, 1, &error);
-	if (error != 0) {
-		sceFontDoneLib(font->lib_handle);
+	vita2d_pgf_font_handle *handle = malloc(sizeof(vita2d_pgf_font_handle));
+	if (!handle) {
 		free(font);
 		return NULL;
 	}
+
+	SceFontHandle font_handle = sceFontOpenUserFile(font->lib_handle, (char *)path, 1, &error);
+	if (error != 0) {
+		sceFontDoneLib(font->lib_handle);
+		free(handle);
+		free(font);
+		return NULL;
+	}
+	memset(handle, 0, sizeof(vita2d_pgf_font_handle));
+	handle->font_handle = font_handle;
+	font->font_handle_list = handle;
 
 	vita2d_load_pgf_post(font);
 
@@ -137,9 +180,12 @@ vita2d_pgf *vita2d_load_custom_pgf(const char *path)
 void vita2d_free_pgf(vita2d_pgf *font)
 {
 	if (font) {
-		sceFontClose(font->font_handle);
-		if (font->font_latin_handle) sceFontClose(font->font_latin_handle);
-		if (font->font_korean_handle) sceFontClose(font->font_korean_handle);
+		vita2d_pgf_font_handle *tmp = font->font_handle_list;
+		while (tmp) {
+			sceFontClose(tmp->font_handle);
+			free(tmp);
+			tmp = tmp->next;
+		}
 		sceFontDoneLib(font->lib_handle);
 		texture_atlas_free(font->atlas);
 		free(font);
@@ -148,18 +194,19 @@ void vita2d_free_pgf(vita2d_pgf *font)
 
 static int atlas_add_glyph(vita2d_pgf *font, unsigned int character)
 {
-	SceFontHandle font_handle;
+	SceFontHandle font_handle = font->font_handle_list->font_handle;
 	SceFontCharInfo char_info;
 	bp2d_position position;
 	void *texture_data;
 	vita2d_texture *tex = font->atlas->texture;
 
-	if (font->font_latin_handle && IS_LATIN_CHAR(character)) {
-		font_handle = font->font_latin_handle;
-	} else if (font->font_korean_handle && IS_HANGUL_CHAR(character)) {
-		font_handle = font->font_korean_handle;
-	} else {
-		font_handle = font->font_handle;
+	vita2d_pgf_font_handle *tmp = font->font_handle_list;
+	while (tmp) {
+		if (tmp->in_font_group == NULL || tmp->in_font_group(character)) {
+			font_handle = tmp->font_handle;
+			break;
+		}
+		tmp = tmp->next;
 	}
 
 	if (sceFontGetCharInfo(font_handle, character, &char_info) < 0)
