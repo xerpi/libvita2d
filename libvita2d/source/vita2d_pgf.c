@@ -85,6 +85,7 @@ vita2d_pgf *vita2d_load_system_pgf(int numFonts, const vita2d_system_pgf_config 
 	}
 
 	unsigned int error;
+	int i;
 
 	vita2d_pgf *font = vita2d_load_pgf_pre(numFonts);
 
@@ -97,7 +98,7 @@ vita2d_pgf *vita2d_load_system_pgf(int numFonts, const vita2d_system_pgf_config 
 
 	vita2d_pgf_font_handle *tmp = NULL;
 
-	for (int i = 0; i < numFonts; i++) {
+	for (i = 0; i < numFonts; i++) {
 		style.fontLanguage = configs[i].code;
 		int index = sceFontFindOptimumFont(font->lib_handle, &style, &error);
 		if (error != 0)
