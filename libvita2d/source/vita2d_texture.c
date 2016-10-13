@@ -61,7 +61,8 @@ vita2d_texture *vita2d_create_empty_texture_format(unsigned int w, unsigned int 
 	if (!texture)
 		return NULL;
 
-	const int tex_size =  w * h * tex_format_to_bytespp(format);
+	const int stride = ((w * tex_format_to_bytespp(format)) + SCE_GXM_TEXTURE_ALIGNMENT - 1) & ~(SCE_GXM_TEXTURE_ALIGNMENT - 1);
+	const int tex_size = stride * h;
 
 	/* Allocate a GPU buffer for the texture */
 	void *texture_data = gpu_alloc(
