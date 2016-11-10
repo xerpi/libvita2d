@@ -1,5 +1,6 @@
 #include <psp2/pgf.h>
 #include <psp2/kernel/sysmem.h>
+#include <psp2/kernel/threadmgr.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -25,6 +26,7 @@ typedef struct vita2d_pgf {
 	SceFontLibHandle lib_handle;
 	vita2d_pgf_font_handle *font_handle_list;
 	texture_atlas *atlas;
+	SceKernelLwMutexWork mutex;
 	float vsize;
 } vita2d_pgf;
 
@@ -47,6 +49,8 @@ static void vita2d_load_pgf_post(vita2d_pgf *font) {
 
 	font->atlas = texture_atlas_create(ATLAS_DEFAULT_W, ATLAS_DEFAULT_H,
 		SCE_GXM_TEXTURE_FORMAT_U8_R111);
+
+	sceKernelCreateLwMutex(&font->mutex, "pgf mutex", 2, 0, NULL);
 }
 
 static vita2d_pgf *vita2d_load_pgf_pre(int numFonts) {
@@ -182,6 +186,8 @@ vita2d_pgf *vita2d_load_custom_pgf(const char *path)
 void vita2d_free_pgf(vita2d_pgf *font)
 {
 	if (font) {
+		sceKernelDeleteLwMutex(&font->mutex);
+
 		vita2d_pgf_font_handle *tmp = font->font_handle_list;
 		while (tmp) {
 			sceFontClose(tmp->font_handle);
@@ -251,6 +257,8 @@ int generic_pgf_draw_text(vita2d_pgf *font, int draw, int *height,
 			  int x, int y, unsigned int color, float scale,
 			  const char *text)
 {
+	sceKernelLockLwMutex(&font->mutex, 1, NULL);
+
 	unsigned int character;
 	bp2d_rectangle rect;
 	texture_atlas_entry_data data;
@@ -299,6 +307,8 @@ int generic_pgf_draw_text(vita2d_pgf *font, int draw, int *height,
 
 	if (height)
 		*height = pen_y + font->vsize * scale - y;
+
+	sceKernelUnlockLwMutex(&font->mutex, 1);
 
 	return max_x - x;
 }
