@@ -131,8 +131,9 @@ cleanup:
 	tmp = font->font_handle_list;
 	while (tmp) {
 		sceFontClose(tmp->font_handle);
+		vita2d_pgf_font_handle *next = tmp->next;
 		free(tmp);
-		tmp = tmp->next;
+		tmp = next;
 	}
 	sceFontDoneLib(font->lib_handle);
 	free(font);
@@ -184,8 +185,9 @@ void vita2d_free_pgf(vita2d_pgf *font)
 		vita2d_pgf_font_handle *tmp = font->font_handle_list;
 		while (tmp) {
 			sceFontClose(tmp->font_handle);
+			vita2d_pgf_font_handle *next = tmp->next;
 			free(tmp);
-			tmp = tmp->next;
+			tmp = next;
 		}
 		sceFontDoneLib(font->lib_handle);
 		texture_atlas_free(font->atlas);
