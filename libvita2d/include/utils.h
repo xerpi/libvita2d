@@ -11,7 +11,7 @@
 #define SCREEN_DPI	220
 
 /* Font utils */
-uint32_t utf8_character(const char **unicode);
+int utf8_to_ucs2(const char *utf8, unsigned int *character);
 
 /* GPU utils */
 void *gpu_alloc(SceKernelMemBlockType type, unsigned int size, unsigned int alignment, unsigned int attribs, SceUID *uid);

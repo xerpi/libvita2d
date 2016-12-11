@@ -268,35 +268,16 @@ void matrix_init_perspective(float *m, float fov, float aspect, float near, floa
 	matrix_init_frustum(m, -half_width, half_width, -half_height, half_height, near, far);
 }
 
-uint32_t utf8_character(const char** unicode)
+int utf8_to_ucs2(const char *utf8, unsigned int *character)
 {
-	char byte = **unicode;
-	++*unicode;
-	if (!(byte & 0x80)) {
-		return byte;
+	if (((utf8[0] & 0xF0) == 0xE0) && ((utf8[1] & 0xC0) == 0x80) && ((utf8[2] & 0xC0) == 0x80)) {
+		*character = ((utf8[0] & 0x0F) << 12) | ((utf8[1] & 0x3F) << 6) | (utf8[2] & 0x3F);
+		return 3;
+	} else if (((utf8[0] & 0xE0) == 0xC0) && ((utf8[1] & 0xC0) == 0x80)) {
+		*character = ((utf8[0] & 0x1F) << 6) | (utf8[1] & 0x3F);
+		return 2;
+	} else {
+		*character = utf8[0];
+		return 1;
 	}
-	uint32_t unichar;
-	const static int tops[4] = { 0xC0, 0xE0, 0xF0, 0xF8 };
-	size_t numBytes;
-	for (numBytes = 0; numBytes < 3; ++numBytes) {
-		if ((byte & tops[numBytes + 1]) == tops[numBytes]) {
-			break;
-		}
-	}
-	unichar = byte & ~tops[numBytes];
-	if (numBytes == 3) {
-		return 0;
-	}
-	++numBytes;
-	size_t i;
-	for (i = 0; i < numBytes; ++i) {
-		unichar <<= 6;
-		byte = **unicode;
-		++*unicode;
-		if ((byte & 0xC0) != 0x80) {
-			return 0;
-		}
-		unichar |= byte & 0x3F;
-	}
-	return unichar;
 }
