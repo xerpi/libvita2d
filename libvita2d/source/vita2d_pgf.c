@@ -259,6 +259,7 @@ int generic_pgf_draw_text(vita2d_pgf *font, int draw, int *height,
 {
 	sceKernelLockLwMutex(&font->mutex, 1, NULL);
 
+	int i;
 	unsigned int character;
 	bp2d_rectangle rect;
 	texture_atlas_entry_data data;
@@ -268,8 +269,8 @@ int generic_pgf_draw_text(vita2d_pgf *font, int draw, int *height,
 	int pen_x = x;
 	int pen_y = y;
 
-	while (*text) {
-		character = utf8_character(&text);
+	for (i = 0; text[i];) {
+		i += utf8_to_ucs2(&text[i], &character);
 
 		if (character == '\n') {
 			if (pen_x > max_x)

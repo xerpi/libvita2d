@@ -228,6 +228,7 @@ static int generic_font_draw_text(vita2d_font *font, int draw,
 	FT_UInt previous = 0;
 	vita2d_texture *tex = font->atlas->texture;
 
+	int i;
 	unsigned int character;
 	int start_x = x;
 	int max_x = 0;
@@ -246,8 +247,8 @@ static int generic_font_draw_text(vita2d_font *font, int draw,
 	use_kerning = FT_HAS_KERNING(face);
 	charmap_index = FT_Get_Charmap_Index(face->charmap);
 
-	while (text[0]) {
-		character = utf8_character(&text);
+	for (i = 0; text[i];) {
+		i += utf8_to_ucs2(&text[i], &character);
 
 		if (character == '\n') {
 			if (pen_x > max_x)
