@@ -115,6 +115,12 @@ vita2d_texture *vita2d_create_empty_texture_format(unsigned int w, unsigned int 
 	return texture;
 }
 
+vita2d_texture *vita2d_loadTextureFromFile(const char *path){
+	
+	
+	
+}
+
 void vita2d_free_texture(vita2d_texture *texture)
 {
 	if (texture) {

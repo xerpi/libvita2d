@@ -4,6 +4,9 @@
 
 void vita2d_draw_pixel(float x, float y, unsigned int color)
 {
+	if(x < 0 || x >= DISPLAY_WIDTH || y < 0 || y >= DISPLAY_HEIGHT)
+		return;
+	
 	vita2d_color_vertex *vertex = (vita2d_color_vertex *)vita2d_pool_memalign(
 		1 * sizeof(vita2d_color_vertex), // 1 vertex
 		sizeof(vita2d_color_vertex));
@@ -34,6 +37,11 @@ void vita2d_draw_pixel(float x, float y, unsigned int color)
 
 void vita2d_draw_line(float x0, float y0, float x1, float y1, unsigned int color)
 {
+	if((x1 - x0) == 0 && (y1 - y0) == 0) {
+		vita2d_draw_pixel(x0, y0, x1, y1, color);
+		return;
+	}
+	
 	vita2d_color_vertex *vertices = (vita2d_color_vertex *)vita2d_pool_memalign(
 		2 * sizeof(vita2d_color_vertex), // 2 vertices
 		sizeof(vita2d_color_vertex));
@@ -70,6 +78,27 @@ void vita2d_draw_line(float x0, float y0, float x1, float y1, unsigned int color
 
 void vita2d_draw_rectangle(float x, float y, float w, float h, unsigned int color)
 {
+	float start_x = x;
+	if(start_x < 0.0f)
+		start_x = 0.0f;
+	
+	float start_y = y;
+	if(start_y < 0.0f)
+		start_y = 0.0f;
+		
+	float end_x = x + w;
+	if(end_x >= DISPLAY_WIDTH)
+		end_x = DISPLAY_WIDTH-1;
+		
+	float end_y = y + h;
+	if(end_y >= DISPLAY_HEIGHT)
+		end_y = DISPLAY_HEIGHT-1;
+	
+	if((end_x - start_x) == 0 && (end_y - start_y) == 0) {
+		vita2d_draw_pixel(start_x, start_y, color);
+		return;
+	}
+	
 	vita2d_color_vertex *vertices = (vita2d_color_vertex *)vita2d_pool_memalign(
 		4 * sizeof(vita2d_color_vertex), // 4 vertices
 		sizeof(vita2d_color_vertex));
@@ -78,23 +107,23 @@ void vita2d_draw_rectangle(float x, float y, float w, float h, unsigned int colo
 		4 * sizeof(uint16_t), // 4 indices
 		sizeof(uint16_t));
 
-	vertices[0].x = x;
-	vertices[0].y = y;
+	vertices[0].x = start_x;
+	vertices[0].y = start_y;
 	vertices[0].z = +0.5f;
 	vertices[0].color = color;
 
-	vertices[1].x = x + w;
-	vertices[1].y = y;
+	vertices[1].x = end_x;
+	vertices[1].y = start_y;
 	vertices[1].z = +0.5f;
 	vertices[1].color = color;
 
-	vertices[2].x = x;
-	vertices[2].y = y + h;
+	vertices[2].x = start_x;
+	vertices[2].y = end_y;
 	vertices[2].z = +0.5f;
 	vertices[2].color = color;
 
-	vertices[3].x = x + w;
-	vertices[3].y = y + h;
+	vertices[3].x = end_x;
+	vertices[3].y = end_y;
 	vertices[3].z = +0.5f;
 	vertices[3].color = color;
 
