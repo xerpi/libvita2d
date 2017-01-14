@@ -218,8 +218,6 @@ void vita2d_free_pvf(vita2d_pvf *font)
 	}
 }
 
-extern void DEBUG(const char *fmt, ...);
-
 ScePvfFontId get_font_for_character(vita2d_pvf *font, unsigned int character)
 {
 	ScePvfFontId font_handle = font->font_handle_list->font_handle;
