@@ -5,6 +5,7 @@
 #include <psp2/types.h>
 #include <psp2/kernel/sysmem.h>
 #include <psp2/pgf.h>
+#include <psp2/pvf.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -43,8 +44,14 @@ typedef struct vita2d_system_pgf_config {
 	int (*in_font_group)(unsigned int c);
 } vita2d_system_pgf_config;
 
+typedef struct vita2d_system_pvf_config {
+	ScePvfLanguageCode code;
+	int (*in_font_group)(unsigned int c);
+} vita2d_system_pvf_config;
+
 typedef struct vita2d_font vita2d_font;
 typedef struct vita2d_pgf vita2d_pgf;
+typedef struct vita2d_pvf vita2d_pvf;
 
 int vita2d_init();
 int vita2d_init_advanced(unsigned int temp_pool_size);
@@ -139,6 +146,17 @@ int vita2d_pgf_draw_textf(vita2d_pgf *font, int x, int y, unsigned int color, fl
 void vita2d_pgf_text_dimensions(vita2d_pgf *font, float scale, const char *text, int *width, int *height);
 int vita2d_pgf_text_width(vita2d_pgf *font, float scale, const char *text);
 int vita2d_pgf_text_height(vita2d_pgf *font, float scale, const char *text);
+
+
+vita2d_pvf *vita2d_load_system_pvf(int numFonts, const vita2d_system_pvf_config *configs);
+vita2d_pvf *vita2d_load_default_pvf();
+vita2d_pvf *vita2d_load_custom_pvf(const char *path);
+void vita2d_free_pvf(vita2d_pvf *font);
+int vita2d_pvf_draw_text(vita2d_pvf *font, int x, int y, unsigned int color, float scale, const char *text);
+int vita2d_pvf_draw_textf(vita2d_pvf *font, int x, int y, unsigned int color, float scale, const char *text, ...);
+void vita2d_pvf_text_dimensions(vita2d_pvf *font, float scale, const char *text, int *width, int *height);
+int vita2d_pvf_text_width(vita2d_pvf *font, float scale, const char *text);
+int vita2d_pvf_text_height(vita2d_pvf *font, float scale, const char *text);
 
 #ifdef __cplusplus
 }

@@ -50,10 +50,11 @@ static void vita2d_load_pgf_post(vita2d_pgf *font) {
 	font->atlas = texture_atlas_create(ATLAS_DEFAULT_W, ATLAS_DEFAULT_H,
 		SCE_GXM_TEXTURE_FORMAT_U8_R111);
 
-	sceKernelCreateLwMutex(&font->mutex, "pgf mutex", 2, 0, NULL);
+	sceKernelCreateLwMutex(&font->mutex, "vita2d_pgf_mutex", 2, 0, NULL);
 }
 
-static vita2d_pgf *vita2d_load_pgf_pre(int numFonts) {
+static vita2d_pgf *vita2d_load_pgf_pre(int numFonts)
+{
 	unsigned int error;
 	vita2d_pgf *font = malloc(sizeof(*font));
 	if (!font)
