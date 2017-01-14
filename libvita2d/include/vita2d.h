@@ -64,6 +64,8 @@ void vita2d_set_vblank_wait(int enable);
 void *vita2d_get_current_fb();
 
 void vita2d_set_region_clip(SceGxmRegionClipMode mode, unsigned int x_min, unsigned int y_min, unsigned int x_max, unsigned int y_max);
+void vita2d_set_clip_rectangle(int x_min, int y_min, int x_max, int y_max);
+void vita2d_get_clip_rectangle(int *x_min, int *y_min, int *x_max, int *y_max);
 
 void *vita2d_pool_malloc(unsigned int size);
 void *vita2d_pool_memalign(unsigned int size, unsigned int alignment);
