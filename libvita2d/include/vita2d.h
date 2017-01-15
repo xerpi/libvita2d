@@ -64,6 +64,9 @@ void vita2d_set_vblank_wait(int enable);
 void *vita2d_get_current_fb();
 
 void vita2d_set_region_clip(SceGxmRegionClipMode mode, unsigned int x_min, unsigned int y_min, unsigned int x_max, unsigned int y_max);
+void vita2d_enable_clipping();
+void vita2d_disable_clipping();
+int vita2d_get_clipping_enabled();
 void vita2d_set_clip_rectangle(int x_min, int y_min, int x_max, int y_max);
 void vita2d_get_clip_rectangle(int *x_min, int *y_min, int *x_max, int *y_max);
 
