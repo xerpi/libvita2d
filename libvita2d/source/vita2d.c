@@ -57,7 +57,13 @@ static const SceGxmProgram *const textureTintFragmentProgramGxp = &texture_tint_
 static int vita2d_initialized = 0;
 static float clear_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
 static unsigned int clear_color_u = 0xFF000000;
+static int clip_rect_x_min = 0;
+static int clip_rect_y_min = 0;
+static int clip_rect_x_max = DISPLAY_WIDTH;
+static int clip_rect_y_max = DISPLAY_HEIGHT;
 static int vblank_wait = 1;
+static int drawing = 0;
+static int clipping_enabled = 0;
 
 static SceUID vdmRingBufferUid;
 static SceUID vertexRingBufferUid;
@@ -72,8 +78,10 @@ static SceUID displayBufferUid[DISPLAY_BUFFER_COUNT];
 static SceGxmColorSurface displaySurface[DISPLAY_BUFFER_COUNT];
 static SceGxmSyncObject *displayBufferSync[DISPLAY_BUFFER_COUNT];
 static SceUID depthBufferUid;
+static SceUID stencilBufferUid;
 static SceGxmDepthStencilSurface depthSurface;
 static void *depthBufferData = NULL;
+static void *stencilBufferData = NULL;
 
 static unsigned int backBufferIndex = 0;
 static unsigned int frontBufferIndex = 0;
@@ -291,6 +299,14 @@ int vita2d_init_advanced(unsigned int temp_pool_size)
 		SCE_GXM_MEMORY_ATTRIB_READ | SCE_GXM_MEMORY_ATTRIB_WRITE,
 		&depthBufferUid);
 
+	// allocate the stencil buffer
+	stencilBufferData = gpu_alloc(
+		SCE_KERNEL_MEMBLOCK_TYPE_USER_RW_UNCACHE,
+		4*sampleCount,
+		SCE_GXM_DEPTHSTENCIL_SURFACE_ALIGNMENT,
+		SCE_GXM_MEMORY_ATTRIB_READ | SCE_GXM_MEMORY_ATTRIB_WRITE,
+		&stencilBufferUid);
+
 	// create the SceGxmDepthStencilSurface structure
 	err = sceGxmDepthStencilSurfaceInit(
 		&depthSurface,
@@ -298,7 +314,19 @@ int vita2d_init_advanced(unsigned int temp_pool_size)
 		SCE_GXM_DEPTH_STENCIL_SURFACE_TILED,
 		depthStrideInSamples,
 		depthBufferData,
-		NULL);
+		stencilBufferData);
+
+	// set the stencil test reference (this is currently assumed to always remain 1 after here for region clipping)
+	sceGxmSetFrontStencilRef(_vita2d_context, 1);
+	// set the stencil function (this wouldn't actually be needed, as the set clip rectangle function has to call this at the begginning of every scene)
+	sceGxmSetFrontStencilFunc(
+		_vita2d_context,
+		SCE_GXM_STENCIL_FUNC_ALWAYS,
+		SCE_GXM_STENCIL_OP_KEEP,
+		SCE_GXM_STENCIL_OP_KEEP,
+		SCE_GXM_STENCIL_OP_KEEP,
+		0xFF,
+		0xFF);
 
 	// set buffer sizes for this sample
 	const unsigned int patcherBufferSize		= 64*1024;
@@ -647,8 +675,9 @@ int vita2d_fini()
 		sceGxmSyncObjectDestroy(displayBufferSync[i]);
 	}
 
-	// free the depth buffer
+	// free the depth and stencil buffer
 	gpu_free(depthBufferUid);
+	gpu_free(stencilBufferUid);
 
 	// unregister programs and destroy shader patcher
 	sceGxmShaderPatcherUnregisterProgram(shaderPatcher, clearFragmentProgramId);
@@ -735,11 +764,101 @@ void vita2d_start_drawing()
 		displayBufferSync[backBufferIndex],
 		&displaySurface[backBufferIndex],
 		&depthSurface);
+		
+	drawing = 1;
+	// in the current way, the library keeps the region clip across scenes
+	if(clipping_enabled) {
+		vita2d_set_clip_rectangle(clip_rect_x_min, clip_rect_y_min, clip_rect_x_max, clip_rect_y_max);
+	}
 }
 
 void vita2d_end_drawing()
 {
 	sceGxmEndScene(_vita2d_context, NULL, NULL);
+	drawing = 0;
+}
+
+void vita2d_enable_clipping()
+{
+	clipping_enabled = 1;
+	vita2d_set_clip_rectangle(clip_rect_x_min, clip_rect_y_min, clip_rect_x_max, clip_rect_y_max);
+}
+
+void vita2d_disable_clipping()
+{
+	clipping_enabled = 0;
+	sceGxmSetFrontStencilFunc(
+			_vita2d_context,
+			SCE_GXM_STENCIL_FUNC_ALWAYS,
+			SCE_GXM_STENCIL_OP_KEEP,
+			SCE_GXM_STENCIL_OP_KEEP,
+			SCE_GXM_STENCIL_OP_KEEP,
+			0xFF,
+			0xFF);
+}
+
+int vita2d_get_clipping_enabled()
+{
+	return clipping_enabled;
+}
+
+void vita2d_set_clip_rectangle(int x_min, int y_min, int x_max, int y_max)
+{
+	clip_rect_x_min = x_min;
+	clip_rect_y_min = y_min;
+	clip_rect_x_max = x_max;
+	clip_rect_y_max = y_max;
+	// we can only draw during a scene, but we can cache the values since they're not going to have any visible effect till the scene starts anyways
+	if(drawing) {
+		// clear the stencil buffer to 0
+		sceGxmSetFrontStencilFunc(
+			_vita2d_context,
+			SCE_GXM_STENCIL_FUNC_NEVER,
+			SCE_GXM_STENCIL_OP_ZERO,
+			SCE_GXM_STENCIL_OP_ZERO,
+			SCE_GXM_STENCIL_OP_ZERO,
+			0xFF,
+			0xFF);
+		vita2d_draw_rectangle(0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT, 0);
+		// set the stencil to 1 in the desired region
+		sceGxmSetFrontStencilFunc(
+			_vita2d_context,
+			SCE_GXM_STENCIL_FUNC_NEVER,
+			SCE_GXM_STENCIL_OP_REPLACE,
+			SCE_GXM_STENCIL_OP_REPLACE,
+			SCE_GXM_STENCIL_OP_REPLACE,
+			0xFF,
+			0xFF);
+		vita2d_draw_rectangle(x_min, y_min, x_max - x_min, y_max - y_min, 0);
+		if(clipping_enabled) {
+			// set the stencil function to only accept pixels where the stencil is 1
+			sceGxmSetFrontStencilFunc(
+				_vita2d_context,
+				SCE_GXM_STENCIL_FUNC_EQUAL,
+				SCE_GXM_STENCIL_OP_KEEP,
+				SCE_GXM_STENCIL_OP_KEEP,
+				SCE_GXM_STENCIL_OP_KEEP,
+				0xFF,
+				0xFF);
+		} else {
+			sceGxmSetFrontStencilFunc(
+				_vita2d_context,
+				SCE_GXM_STENCIL_FUNC_ALWAYS,
+				SCE_GXM_STENCIL_OP_KEEP,
+				SCE_GXM_STENCIL_OP_KEEP,
+				SCE_GXM_STENCIL_OP_KEEP,
+				0xFF,
+				0xFF);
+		}
+	}
+}
+
+void vita2d_get_clip_rectangle(int *x_min, int *y_min, int *x_max, int *y_max)
+{
+	*x_min = clip_rect_x_min;
+	*y_min = clip_rect_y_min;
+	*x_max = clip_rect_x_max;
+	*y_max = clip_rect_y_max;
 }
 
 int vita2d_common_dialog_update()
