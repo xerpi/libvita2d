@@ -71,10 +71,10 @@ static vita2d_texture *_vita2d_load_BMP_generic(
 
 		for (x = 0; x < bmp_ih->biWidth; x++) {
 
-			if (bmp_ih->biBitCount == 32) {		//ABGR8888
+			if (bmp_ih->biBitCount == 32) {		//BGRA8888
 				unsigned int color = *(unsigned int *)(buffer + x*4);
-				*tex_ptr = (color&0xFF)<<24 | ((color>>8)&0xFF)<<16 |
-					((color>>16)&0xFF)<<8 | (color>>24);
+				*tex_ptr = ((color>>24)&0xFF)<<24 | (color&0xFF)<<16 |
+					((color>>8)&0xFF)<<8 | (color>>16)&0xFF;
 
 			} else if (bmp_ih->biBitCount == 24) {	//BGR888
 				unsigned char *address = buffer + x*3;
