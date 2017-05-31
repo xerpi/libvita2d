@@ -756,7 +756,8 @@ void vita2d_start_drawing()
 	vita2d_start_drawing_advanced(NULL, 0);
 }
 
-void vita2d_start_drawing_advanced(vita2d_texture *target, unsigned int flags) {
+void vita2d_start_drawing_advanced(vita2d_texture *target, unsigned int flags)
+{
 
 	if (target == NULL) {
 		sceGxmBeginScene(

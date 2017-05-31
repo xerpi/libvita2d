@@ -187,11 +187,13 @@ static vita2d_texture *_vita2d_create_empty_texture_format_advanced(unsigned int
 	return texture;
 }
 
-vita2d_texture * vita2d_create_empty_texture_format(unsigned int w, unsigned int h, SceGxmTextureFormat format){
+vita2d_texture * vita2d_create_empty_texture_format(unsigned int w, unsigned int h, SceGxmTextureFormat format)
+{
 	return _vita2d_create_empty_texture_format_advanced(w, h, format, 0);
 }
 
-vita2d_texture * vita2d_create_empty_texture_rendertarget(unsigned int w, unsigned int h, SceGxmTextureFormat format){
+vita2d_texture * vita2d_create_empty_texture_rendertarget(unsigned int w, unsigned int h, SceGxmTextureFormat format)
+{
 	return _vita2d_create_empty_texture_format_advanced(w, h, format, 1);
 }
 
