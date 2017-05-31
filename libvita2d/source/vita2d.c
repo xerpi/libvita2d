@@ -752,19 +752,38 @@ void vita2d_swap_buffers()
 
 void vita2d_start_drawing()
 {
-	/* Reset the temporary memory pool */
-	vita2d_pool_reset();
+	vita2d_start_drawing_advanced(NULL, VITA_2D_RESET_POOL);
+}
 
-	sceGxmBeginScene(
+void vita2d_start_drawing_advanced(vita2d_texture *target, vita2d_start_drawing_flags flags) {
+	/* Reset the temporary memory pool */
+  unsigned int sce_gxm_flags = flags & 0x0000000Fu;
+
+	if(flags & VITA_2D_RESET_POOL)
+		vita2d_pool_reset();
+
+	if (target == NULL) {
+		sceGxmBeginScene(
 		_vita2d_context,
-		0,
+		sce_gxm_flags,
 		renderTarget,
 		NULL,
 		NULL,
 		displayBufferSync[backBufferIndex],
 		&displaySurface[backBufferIndex],
 		&depthSurface);
-		
+	} else {
+		sceGxmBeginScene(
+		_vita2d_context,
+		sce_gxm_flags,
+		target->gxm_rtgt,
+		NULL,
+		NULL,
+		NULL,
+		&target->gxm_sfc,
+		&target->gxm_sfd);
+	}
+
 	drawing = 1;
 	// in the current way, the library keeps the region clip across scenes
 	if(clipping_enabled) {
