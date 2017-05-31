@@ -74,7 +74,7 @@ static vita2d_texture *_vita2d_load_BMP_generic(
 			if (bmp_ih->biBitCount == 32) {		//BGRA8888
 				unsigned int color = *(unsigned int *)(buffer + x*4);
 				*tex_ptr = ((color>>24)&0xFF)<<24 | (color&0xFF)<<16 |
-					((color>>8)&0xFF)<<8 | (color>>16)&0xFF;
+					((color>>8)&0xFF)<<8 | ((color>>16)&0xFF);
 
 			} else if (bmp_ih->biBitCount == 24) {	//BGR888
 				unsigned char *address = buffer + x*3;

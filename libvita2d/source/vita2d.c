@@ -752,20 +752,16 @@ void vita2d_swap_buffers()
 
 void vita2d_start_drawing()
 {
-	vita2d_start_drawing_advanced(NULL, VITA_2D_RESET_POOL);
+	vita2d_pool_reset();
+	vita2d_start_drawing_advanced(NULL, 0);
 }
 
-void vita2d_start_drawing_advanced(vita2d_texture *target, vita2d_start_drawing_flags flags) {
-	/* Reset the temporary memory pool */
-  unsigned int sce_gxm_flags = flags & 0x0000000Fu;
-
-	if(flags & VITA_2D_RESET_POOL)
-		vita2d_pool_reset();
+void vita2d_start_drawing_advanced(vita2d_texture *target, unsigned int flags) {
 
 	if (target == NULL) {
 		sceGxmBeginScene(
 		_vita2d_context,
-		sce_gxm_flags,
+		flags,
 		renderTarget,
 		NULL,
 		NULL,
@@ -775,7 +771,7 @@ void vita2d_start_drawing_advanced(vita2d_texture *target, vita2d_start_drawing_
 	} else {
 		sceGxmBeginScene(
 		_vita2d_context,
-		sce_gxm_flags,
+		flags,
 		target->gxm_rtgt,
 		NULL,
 		NULL,
@@ -786,7 +782,7 @@ void vita2d_start_drawing_advanced(vita2d_texture *target, vita2d_start_drawing_
 
 	drawing = 1;
 	// in the current way, the library keeps the region clip across scenes
-	if(clipping_enabled) {
+	if (clipping_enabled) {
 		vita2d_set_clip_rectangle(clip_rect_x_min, clip_rect_y_min, clip_rect_x_max, clip_rect_y_max);
 	}
 }

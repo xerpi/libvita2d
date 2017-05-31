@@ -112,7 +112,7 @@ static vita2d_texture *_vita2d_create_empty_texture_format_advanced(unsigned int
 		texture->palette_UID = 0;
 	}
 
-	if(isRenderTarget){
+	if (isRenderTarget) {
 
 		int err = sceGxmColorSurfaceInit(
 			&texture->gxm_sfc,
@@ -188,20 +188,20 @@ static vita2d_texture *_vita2d_create_empty_texture_format_advanced(unsigned int
 }
 
 vita2d_texture * vita2d_create_empty_texture_format(unsigned int w, unsigned int h, SceGxmTextureFormat format){
-	return _vita2d_create_empty_texture_format_advanced(w,h,format,0);
+	return _vita2d_create_empty_texture_format_advanced(w, h, format, 0);
 }
 
-vita2d_texture * vita2d_create_empty_texture_renderTarget(unsigned int w, unsigned int h, SceGxmTextureFormat format){
-	return _vita2d_create_empty_texture_format_advanced(w,h,format,1);
+vita2d_texture * vita2d_create_empty_texture_rendertarget(unsigned int w, unsigned int h, SceGxmTextureFormat format){
+	return _vita2d_create_empty_texture_format_advanced(w, h, format, 1);
 }
 
 void vita2d_free_texture(vita2d_texture *texture)
 {
 	if (texture) {
-		if(texture->gxm_rtgt){
+		if (texture->gxm_rtgt) {
 			sceGxmDestroyRenderTarget(texture->gxm_rtgt);
 		}
-		if(texture->depth_UID){
+		if (texture->depth_UID) {
 			gpu_free(texture->depth_UID);
 		}
 		if (texture->palette_UID) {
