@@ -52,7 +52,7 @@ vita2d_texture *vita2d_create_empty_texture(unsigned int w, unsigned int h)
 	return vita2d_create_empty_texture_format(w, h, SCE_GXM_TEXTURE_FORMAT_A8B8G8R8);
 }
 
-vita2d_texture *vita2d_create_empty_texture_format(unsigned int w, unsigned int h, SceGxmTextureFormat format)
+static vita2d_texture *_vita2d_create_empty_texture_format_advanced(unsigned int w, unsigned int h, SceGxmTextureFormat format, unsigned int isRenderTarget)
 {
 	if (w > GXM_TEX_MAX_SIZE || h > GXM_TEX_MAX_SIZE)
 		return NULL;
@@ -112,12 +112,100 @@ vita2d_texture *vita2d_create_empty_texture_format(unsigned int w, unsigned int 
 		texture->palette_UID = 0;
 	}
 
+	if (isRenderTarget) {
+
+		int err = sceGxmColorSurfaceInit(
+			&texture->gxm_sfc,
+			SCE_GXM_COLOR_FORMAT_A8B8G8R8,
+			SCE_GXM_COLOR_SURFACE_LINEAR,
+			SCE_GXM_COLOR_SURFACE_SCALE_NONE,
+			SCE_GXM_OUTPUT_REGISTER_SIZE_32BIT,
+			w,
+			h,
+			w,
+			texture_data
+		);
+
+		if (err < 0) {
+			vita2d_free_texture(texture);
+			return NULL;
+		}
+
+		// create the depth/stencil surface
+		const uint32_t alignedWidth = ALIGN(w, SCE_GXM_TILE_SIZEX);
+		const uint32_t alignedHeight = ALIGN(h, SCE_GXM_TILE_SIZEY);
+		uint32_t sampleCount = alignedWidth*alignedHeight;
+		uint32_t depthStrideInSamples = alignedWidth;
+
+		// allocate it
+		void *depthBufferData = gpu_alloc(
+			SCE_KERNEL_MEMBLOCK_TYPE_USER_RW_UNCACHE,
+			4*sampleCount,
+			SCE_GXM_DEPTHSTENCIL_SURFACE_ALIGNMENT,
+			SCE_GXM_MEMORY_ATTRIB_READ | SCE_GXM_MEMORY_ATTRIB_WRITE,
+			&texture->depth_UID);
+
+		// create the SceGxmDepthStencilSurface structure
+		err = sceGxmDepthStencilSurfaceInit(
+			&texture->gxm_sfd,
+			SCE_GXM_DEPTH_STENCIL_FORMAT_S8D24,
+			SCE_GXM_DEPTH_STENCIL_SURFACE_TILED,
+			depthStrideInSamples,
+			depthBufferData,
+			NULL);
+
+		if (err < 0) {
+			vita2d_free_texture(texture);
+			return NULL;
+		}
+
+		SceGxmRenderTarget *tgt = NULL;
+
+		// set up parameters
+		SceGxmRenderTargetParams renderTargetParams;
+		memset(&renderTargetParams, 0, sizeof(SceGxmRenderTargetParams));
+		renderTargetParams.flags = 0;
+		renderTargetParams.width = w;
+		renderTargetParams.height = h;
+		renderTargetParams.scenesPerFrame = 1;
+		renderTargetParams.multisampleMode = SCE_GXM_MULTISAMPLE_NONE;
+		renderTargetParams.multisampleLocations = 0;
+		renderTargetParams.driverMemBlock = -1;
+
+		// create the render target
+		err = sceGxmCreateRenderTarget(&renderTargetParams, &tgt);
+
+		texture->gxm_rtgt = tgt;
+
+		if (err < 0) {
+			vita2d_free_texture(texture);
+			return NULL;
+		}
+
+	}
+
 	return texture;
+}
+
+vita2d_texture * vita2d_create_empty_texture_format(unsigned int w, unsigned int h, SceGxmTextureFormat format)
+{
+	return _vita2d_create_empty_texture_format_advanced(w, h, format, 0);
+}
+
+vita2d_texture * vita2d_create_empty_texture_rendertarget(unsigned int w, unsigned int h, SceGxmTextureFormat format)
+{
+	return _vita2d_create_empty_texture_format_advanced(w, h, format, 1);
 }
 
 void vita2d_free_texture(vita2d_texture *texture)
 {
 	if (texture) {
+		if (texture->gxm_rtgt) {
+			sceGxmDestroyRenderTarget(texture->gxm_rtgt);
+		}
+		if (texture->depth_UID) {
+			gpu_free(texture->depth_UID);
+		}
 		if (texture->palette_UID) {
 			gpu_free(texture->palette_UID);
 		}
@@ -746,4 +834,3 @@ void vita2d_draw_texture_part_tint_scale_rotate(const vita2d_texture *texture, f
 	draw_texture_part_scale_rotate_generic(texture, x, y,
 		tex_x, tex_y, tex_w, tex_h, x_scale, y_scale, rad);
 }
-

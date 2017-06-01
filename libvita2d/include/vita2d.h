@@ -37,6 +37,10 @@ typedef struct vita2d_texture {
 	SceGxmTexture gxm_tex;
 	SceUID data_UID;
 	SceUID palette_UID;
+	SceGxmRenderTarget *gxm_rtgt;
+	SceGxmColorSurface gxm_sfc;
+	SceGxmDepthStencilSurface gxm_sfd;
+	SceUID depth_UID;
 } vita2d_texture;
 
 typedef struct vita2d_system_pgf_config {
@@ -62,6 +66,7 @@ void vita2d_clear_screen();
 void vita2d_swap_buffers();
 
 void vita2d_start_drawing();
+void vita2d_start_drawing_advanced(vita2d_texture *target, unsigned int flags);
 void vita2d_end_drawing();
 
 int vita2d_common_dialog_update();
@@ -92,6 +97,8 @@ void vita2d_texture_set_alloc_memblock_type(SceKernelMemBlockType type);
 SceKernelMemBlockType vita2d_texture_get_alloc_memblock_type();
 vita2d_texture *vita2d_create_empty_texture(unsigned int w, unsigned int h);
 vita2d_texture *vita2d_create_empty_texture_format(unsigned int w, unsigned int h, SceGxmTextureFormat format);
+vita2d_texture *vita2d_create_empty_texture_rendertarget(unsigned int w, unsigned int h, SceGxmTextureFormat format);
+
 void vita2d_free_texture(vita2d_texture *texture);
 
 unsigned int vita2d_texture_get_width(const vita2d_texture *texture);
