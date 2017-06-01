@@ -834,3 +834,48 @@ void vita2d_draw_texture_part_tint_scale_rotate(const vita2d_texture *texture, f
 	draw_texture_part_scale_rotate_generic(texture, x, y,
 		tex_x, tex_y, tex_w, tex_h, x_scale, y_scale, rad);
 }
+
+void vita2d_set_texture_shader(const vita2d_shader *shader)
+{
+	sceGxmSetVertexProgram(_vita2d_context, shader->vertexProgram);
+	sceGxmSetFragmentProgram(_vita2d_context, shader->fragmentProgram);
+}
+
+void vita2d_set_texture_wvp_uniform(const vita2d_shader *shader)
+{
+	void *vertex_wvp_buffer;
+	sceGxmReserveVertexDefaultUniformBuffer(_vita2d_context, &vertex_wvp_buffer);
+	sceGxmSetUniformDataF(vertex_wvp_buffer, shader->wvpParam, 0, 16, _vita2d_ortho_matrix);
+}
+
+void vita2d_set_texture_wvp_uniform_advanced(const vita2d_shader *shader, float *matrix)
+{
+	void *vertex_wvp_buffer;
+	sceGxmReserveVertexDefaultUniformBuffer(_vita2d_context, &vertex_wvp_buffer);
+	sceGxmSetUniformDataF(vertex_wvp_buffer, shader->wvpParam, 0, 16, matrix);
+}
+
+void vita2d_set_texture_vertex_uniform(const vita2d_shader *shader, const char * param, const float *value, unsigned int length)
+{
+	void *vertex_wvp_buffer;
+	const SceGxmProgram *program = sceGxmVertexProgramGetProgram(shader->vertexProgram);
+	const SceGxmProgramParameter *program_parameter = sceGxmProgramFindParameterByName(program, param);
+	sceGxmReserveVertexDefaultUniformBuffer(_vita2d_context, &vertex_wvp_buffer);
+	sceGxmSetUniformDataF(vertex_wvp_buffer, program_parameter, 0, length, value);
+}
+
+void vita2d_set_texture_fragment_uniform(const vita2d_shader *shader, const char * param, const float *value, unsigned int length)
+{
+	void *fragment_wvp_buffer;
+	const SceGxmProgram *program = sceGxmFragmentProgramGetProgram(shader->fragmentProgram);
+	const SceGxmProgramParameter *program_parameter = sceGxmProgramFindParameterByName(program, param);
+	sceGxmReserveFragmentDefaultUniformBuffer(_vita2d_context, &fragment_wvp_buffer);
+	sceGxmSetUniformDataF(fragment_wvp_buffer, program_parameter, 0, length, value);
+}
+
+void vita2d_draw_texture_part_scale_rotate_generic(const vita2d_texture *texture, float x, float y,
+	float tex_x, float tex_y, float tex_w, float tex_h, float x_scale, float y_scale, float rad)
+{
+	draw_texture_part_scale_rotate_generic(texture, x, y,
+		tex_x, tex_y, tex_w, tex_h, x_scale, y_scale, rad);
+}
