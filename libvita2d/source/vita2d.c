@@ -919,6 +919,16 @@ void *vita2d_get_current_fb()
 	return displayBufferData[frontBufferIndex];
 }
 
+SceGxmContext *vita2d_get_context()
+{
+	return _vita2d_context;
+}
+
+SceGxmShaderPatcher *vita2d_get_shader_patcher()
+{
+	return shaderPatcher;
+}
+
 void vita2d_set_region_clip(SceGxmRegionClipMode mode, unsigned int x_min, unsigned int y_min, unsigned int x_max, unsigned int y_max)
 {
 	sceGxmSetRegionClip(_vita2d_context, mode, x_min, y_min, x_max, y_max);
