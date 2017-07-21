@@ -76,7 +76,7 @@ unsigned int vita2d_get_clear_color();
 void vita2d_set_vblank_wait(int enable);
 void *vita2d_get_current_fb();
 SceGxmContext *vita2d_get_context();
-SceGxmShaderPatcher *vita2d_get_shaderPatcher();
+SceGxmShaderPatcher *vita2d_get_shader_patcher();
 
 void vita2d_set_region_clip(SceGxmRegionClipMode mode, unsigned int x_min, unsigned int y_min, unsigned int x_max, unsigned int y_max);
 void vita2d_enable_clipping();
