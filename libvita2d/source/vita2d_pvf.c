@@ -396,3 +396,9 @@ int vita2d_pvf_text_height(vita2d_pvf *font, float scale, const char *text)
 	vita2d_pvf_text_dimensions(font, scale, text, NULL, &height);
 	return height;
 }
+
+void vita2d_pvf_set_char_size(vita2d_pvf *font, float x, float y)
+{
+    scePvfSetCharSize(font->font_handle_list->font_handle, x, y);
+}
+

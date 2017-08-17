@@ -172,6 +172,7 @@ int vita2d_pvf_draw_textf(vita2d_pvf *font, int x, int y, unsigned int color, fl
 void vita2d_pvf_text_dimensions(vita2d_pvf *font, float scale, const char *text, int *width, int *height);
 int vita2d_pvf_text_width(vita2d_pvf *font, float scale, const char *text);
 int vita2d_pvf_text_height(vita2d_pvf *font, float scale, const char *text);
+void vita2d_pvf_set_char_size(vita2d_pvf *font, float x, float y);
 
 #ifdef __cplusplus
 }
