@@ -126,6 +126,10 @@ static SceUID poolUid;
 static unsigned int pool_index = 0;
 static unsigned int pool_size = 0;
 
+// Indices buffer
+static SceUID indicesUid;
+void *indices_buf_addr = NULL;
+
 /* Static functions */
 
 static void *patcher_host_alloc(void *user_data, unsigned int size)
@@ -618,6 +622,21 @@ int vita2d_init_advanced(unsigned int temp_pool_size)
 		sizeof(void *),
 		SCE_GXM_MEMORY_ATTRIB_READ,
 		&poolUid);
+		
+	// Allocate memory for indices buffer
+	indices_buf_addr = gpu_alloc(
+		SCE_KERNEL_MEMBLOCK_TYPE_USER_RW,
+		4 * sizeof(uint16_t),
+		sizeof(void *),
+		SCE_GXM_MEMORY_ATTRIB_READ,
+		&indicesUid);
+		
+	// Initializing indices buffer
+	uint16_t *indices = (uint16_t*)indices_buf_addr;
+	indices[0] = 0;
+	indices[1] = 1;
+	indices[2] = 2;
+	indices[3] = 3;
 
 	matrix_init_orthographic(_vita2d_ortho_matrix, 0.0f, DISPLAY_WIDTH, DISPLAY_HEIGHT, 0.0f, 0.0f, 1.0f);
 
@@ -705,6 +724,7 @@ int vita2d_fini()
 	free(contextParams.hostMem);
 
 	gpu_free(poolUid);
+	gpu_free(indicesUid);
 
 	// terminate libgxm
 	sceGxmTerminate();
