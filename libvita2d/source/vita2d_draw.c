@@ -2,6 +2,8 @@
 #include "vita2d.h"
 #include "shared.h"
 
+extern void *indices_buf_addr;
+
 void vita2d_draw_pixel(float x, float y, unsigned int color)
 {
 	vita2d_color_vertex *vertex = (vita2d_color_vertex *)vita2d_pool_memalign(
@@ -38,10 +40,6 @@ void vita2d_draw_line(float x0, float y0, float x1, float y1, unsigned int color
 		2 * sizeof(vita2d_color_vertex), // 2 vertices
 		sizeof(vita2d_color_vertex));
 
-	uint16_t *indices = (uint16_t *)vita2d_pool_memalign(
-		2 * sizeof(uint16_t), // 2 indices
-		sizeof(uint16_t));
-
 	vertices[0].x = x0;
 	vertices[0].y = y0;
 	vertices[0].z = +0.5f;
@@ -52,9 +50,6 @@ void vita2d_draw_line(float x0, float y0, float x1, float y1, unsigned int color
 	vertices[1].z = +0.5f;
 	vertices[1].color = color;
 
-	indices[0] = 0;
-	indices[1] = 1;
-
 	sceGxmSetVertexProgram(_vita2d_context, _vita2d_colorVertexProgram);
 	sceGxmSetFragmentProgram(_vita2d_context, _vita2d_colorFragmentProgram);
 
@@ -64,7 +59,7 @@ void vita2d_draw_line(float x0, float y0, float x1, float y1, unsigned int color
 
 	sceGxmSetVertexStream(_vita2d_context, 0, vertices);
 	sceGxmSetFrontPolygonMode(_vita2d_context, SCE_GXM_POLYGON_MODE_LINE);
-	sceGxmDraw(_vita2d_context, SCE_GXM_PRIMITIVE_LINES, SCE_GXM_INDEX_FORMAT_U16, indices, 2);
+	sceGxmDraw(_vita2d_context, SCE_GXM_PRIMITIVE_LINES, SCE_GXM_INDEX_FORMAT_U16, indices_buf_addr, 2);
 	sceGxmSetFrontPolygonMode(_vita2d_context, SCE_GXM_POLYGON_MODE_TRIANGLE_FILL);
 }
 
@@ -73,10 +68,6 @@ void vita2d_draw_rectangle(float x, float y, float w, float h, unsigned int colo
 	vita2d_color_vertex *vertices = (vita2d_color_vertex *)vita2d_pool_memalign(
 		4 * sizeof(vita2d_color_vertex), // 4 vertices
 		sizeof(vita2d_color_vertex));
-
-	uint16_t *indices = (uint16_t *)vita2d_pool_memalign(
-		4 * sizeof(uint16_t), // 4 indices
-		sizeof(uint16_t));
 
 	vertices[0].x = x;
 	vertices[0].y = y;
@@ -98,11 +89,6 @@ void vita2d_draw_rectangle(float x, float y, float w, float h, unsigned int colo
 	vertices[3].z = +0.5f;
 	vertices[3].color = color;
 
-	indices[0] = 0;
-	indices[1] = 1;
-	indices[2] = 2;
-	indices[3] = 3;
-
 	sceGxmSetVertexProgram(_vita2d_context, _vita2d_colorVertexProgram);
 	sceGxmSetFragmentProgram(_vita2d_context, _vita2d_colorFragmentProgram);
 
@@ -111,7 +97,7 @@ void vita2d_draw_rectangle(float x, float y, float w, float h, unsigned int colo
 	sceGxmSetUniformDataF(vertexDefaultBuffer, _vita2d_colorWvpParam, 0, 16, _vita2d_ortho_matrix);
 
 	sceGxmSetVertexStream(_vita2d_context, 0, vertices);
-	sceGxmDraw(_vita2d_context, SCE_GXM_PRIMITIVE_TRIANGLE_STRIP, SCE_GXM_INDEX_FORMAT_U16, indices, 4);
+	sceGxmDraw(_vita2d_context, SCE_GXM_PRIMITIVE_TRIANGLE_STRIP, SCE_GXM_INDEX_FORMAT_U16, indices_buf_addr, 4);
 }
 
 void vita2d_draw_fill_circle(float x, float y, float radius, unsigned int color)
@@ -125,7 +111,6 @@ void vita2d_draw_fill_circle(float x, float y, float radius, unsigned int color)
 	uint16_t *indices = (uint16_t *)vita2d_pool_memalign(
 		(num_segments + 2) * sizeof(uint16_t),
 		sizeof(uint16_t));
-
 
 	vertices[0].x = x;
 	vertices[0].y = y;
