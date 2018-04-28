@@ -70,7 +70,7 @@ static vita2d_texture *_vita2d_create_empty_texture_format_advanced(unsigned int
 		MemBlockType,
 		tex_size,
 		SCE_GXM_TEXTURE_ALIGNMENT,
-		SCE_GXM_MEMORY_ATTRIB_READ,
+		SCE_GXM_MEMORY_ATTRIB_READ | SCE_GXM_MEMORY_ATTRIB_WRITE,
 		&texture->data_UID);
 
 	if (!texture_data) {
