@@ -425,8 +425,8 @@ int vita2d_init_advanced(unsigned int temp_pool_size)
 		.alphaFunc = SCE_GXM_BLEND_FUNC_ADD,
 		.colorSrc  = SCE_GXM_BLEND_FACTOR_SRC_ALPHA,
 		.colorDst  = SCE_GXM_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
-		.alphaSrc  = SCE_GXM_BLEND_FACTOR_ONE,
-		.alphaDst  = SCE_GXM_BLEND_FACTOR_ZERO,
+		.alphaSrc  = SCE_GXM_BLEND_FACTOR_SRC_ALPHA,
+		.alphaDst  = SCE_GXM_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
 		.colorMask = SCE_GXM_COLOR_MASK_ALL
 	};
 
