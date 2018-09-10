@@ -26,10 +26,18 @@ static vita2d_texture *_vita2d_load_JPEG_generic(struct jpeg_decompress_struct *
 
 	jpeg_start_decompress(jinfo);
 
-	vita2d_texture *texture = vita2d_create_empty_texture_format(
-		jinfo->output_width,
-		jinfo->output_height,
-		SCE_GXM_TEXTURE_FORMAT_U8U8U8_BGR);
+	vita2d_texture *texture;
+	if (jinfo->out_color_space==JCS_GRAYSCALE){
+		texture = vita2d_create_empty_texture_format(
+			jinfo->output_width,
+			jinfo->output_height,
+			SCE_GXM_TEXTURE_FORMAT_U8_R111);
+	}else{
+		texture = vita2d_create_empty_texture_format(
+			jinfo->output_width,
+			jinfo->output_height,
+			SCE_GXM_TEXTURE_FORMAT_U8U8U8_BGR);
+	}
 
 	if (!texture) {
 		jpeg_abort_decompress(jinfo);
