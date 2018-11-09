@@ -62,7 +62,7 @@ static vita2d_texture *_vita2d_load_JPEG_generic(struct jpeg_decompress_struct *
 vita2d_texture *vita2d_load_JPEG_file(const char *filename)
 {
 	FILE *fp;
-	if ((fp = fopen(filename, "rb")) < 0) {
+	if ((fp = fopen(filename, "rb")) <= 0) {
 		return NULL;
 	}
 
