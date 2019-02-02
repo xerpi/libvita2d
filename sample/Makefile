@@ -11,6 +11,10 @@ CC      = $(PREFIX)-gcc
 CFLAGS  = -Wl,-q -Wall -fno-lto
 ASFLAGS = $(CFLAGS)
 
+# Link against the locally-built version of libvita2d if possible
+LIBS += -L../libvita2d
+CFLAGS += -I../libvita2d/include
+
 all: $(TARGET).vpk
 
 %.vpk: eboot.bin

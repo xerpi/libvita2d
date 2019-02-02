@@ -151,3 +151,23 @@ void vita2d_draw_fill_circle(float x, float y, float radius, unsigned int color)
 	sceGxmSetVertexStream(_vita2d_context, 0, vertices);
 	sceGxmDraw(_vita2d_context, SCE_GXM_PRIMITIVE_TRIANGLE_FAN, SCE_GXM_INDEX_FORMAT_U16, indices, num_segments + 2);
 }
+
+void vita2d_draw_array(SceGxmPrimitiveType mode, const vita2d_color_vertex *vertices, size_t count)
+{
+	uint16_t *indices = (uint16_t *)vita2d_pool_memalign(count * sizeof(uint16_t), sizeof(uint16_t));
+	for (int i = 0; i<count; i++) {
+		indices[i] = i;
+	}
+
+	sceGxmSetVertexProgram(_vita2d_context, _vita2d_colorVertexProgram);
+	sceGxmSetFragmentProgram(_vita2d_context, _vita2d_colorFragmentProgram);
+
+	void *vertexDefaultBuffer;
+	sceGxmReserveVertexDefaultUniformBuffer(_vita2d_context, &vertexDefaultBuffer);
+	sceGxmSetUniformDataF(vertexDefaultBuffer, _vita2d_colorWvpParam, 0, 16, _vita2d_ortho_matrix);
+
+	sceGxmSetBackPolygonMode(_vita2d_context, SCE_GXM_POLYGON_MODE_TRIANGLE_FILL);
+
+	sceGxmSetVertexStream(_vita2d_context, 0, vertices);
+	sceGxmDraw(_vita2d_context, mode, SCE_GXM_INDEX_FORMAT_U16, indices, count);
+}
