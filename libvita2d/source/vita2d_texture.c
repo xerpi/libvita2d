@@ -773,3 +773,23 @@ void vita2d_draw_texture_part_tint_scale_rotate(const vita2d_texture *texture, f
 	draw_texture_part_scale_rotate_generic(texture, x, y,
 		tex_x, tex_y, tex_w, tex_h, x_scale, y_scale, rad);
 }
+
+void vita2d_draw_array_textured(const vita2d_texture *texture, SceGxmPrimitiveType mode, const vita2d_texture_vertex *vertices, size_t count, unsigned int color)
+{
+	uint16_t *indices = (uint16_t *)vita2d_pool_memalign(count * sizeof(uint16_t), sizeof(uint16_t));
+	for (int i = 0; i<count; i++) {
+		indices[i] = i;
+	}
+
+	set_texture_tint_program();
+	set_texture_wvp_uniform();
+	set_texture_tint_color_uniform(color);
+
+	sceGxmSetBackPolygonMode(_vita2d_context, SCE_GXM_POLYGON_MODE_TRIANGLE_FILL);
+
+	// Set the texture to the TEXUNIT0
+	sceGxmSetFragmentTexture(_vita2d_context, 0, &texture->gxm_tex);
+
+	sceGxmSetVertexStream(_vita2d_context, 0, vertices);
+	sceGxmDraw(_vita2d_context, mode, SCE_GXM_INDEX_FORMAT_U16, indices, count);
+}
