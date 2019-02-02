@@ -73,6 +73,30 @@ int main()
 
 		vita2d_draw_array(SCE_GXM_PRIMITIVE_TRIANGLE_STRIP, vertices, n_vertices);
 
+		size_t nslices = 50;
+		size_t n_tvertices = 6 * nslices;
+		vita2d_texture_vertex *tvertices = (vita2d_texture_vertex *)vita2d_pool_memalign(
+			n_tvertices * sizeof(vita2d_texture_vertex),
+			sizeof(vita2d_texture_vertex));
+
+		for (int slice=0; slice<nslices; slice++) {
+			float a = (float)slice/(float)nslices;
+			float b = (float)(slice+1)/(float)nslices;
+
+			vita2d_texture_vertex *v = &tvertices[slice*6];
+			(v++)->u = a; (v++)->u = a; (v++)->u = b;
+			(v++)->u = a; (v++)->u = b; (v++)->u = b;
+		}
+
+		for (int i=0; i<n_tvertices; ++i) {
+			tvertices[i].v = i % 2;
+			tvertices[i].x = 720.f + 200.f * tvertices[i].u;
+			tvertices[i].y = 100.f + 200.f * tvertices[i].v + 10.f * sinf(tvertices[i].u*(3.f+40.f*fabsf(sinf(rad*0.1f)))+rad);
+			tvertices[i].z = 0.5f;
+		}
+
+		vita2d_draw_array_textured(image, SCE_GXM_PRIMITIVE_TRIANGLES, tvertices, n_tvertices, RGBA8(0xFF, 0xFF, 0xFF, 0xFF));
+
 		vita2d_end_drawing();
 		vita2d_swap_buffers();
 
