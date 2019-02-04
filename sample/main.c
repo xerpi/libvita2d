@@ -97,6 +97,11 @@ int main()
 
 		vita2d_draw_array_textured(image, SCE_GXM_PRIMITIVE_TRIANGLES, tvertices, n_tvertices, RGBA8(0xFF, 0xFF, 0xFF, 0xFF));
 
+		vita2d_draw_rectangle(40, 40, 100, 100, RGBA8(128, 64, 192, 255));
+		vita2d_set_blend_mode_add(1);
+		vita2d_draw_rectangle(40, 60, 200, 60, RGBA8(0, 100, 0, 128));
+		vita2d_set_blend_mode_add(0);
+
 		vita2d_end_drawing();
 		vita2d_swap_buffers();
 
