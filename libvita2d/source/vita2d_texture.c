@@ -9,8 +9,6 @@
 #define GXM_TEX_MAX_SIZE 4096
 static SceKernelMemBlockType MemBlockType = SCE_KERNEL_MEMBLOCK_TYPE_USER_CDRAM_RW;
 
-extern void *indices_buf_addr;
-
 static int tex_format_to_bytespp(SceGxmTextureFormat format)
 {
 	switch (format & 0x9f000000U) {
@@ -336,7 +334,7 @@ static inline void draw_texture_generic(const vita2d_texture *texture, float x, 
 	sceGxmSetFragmentTexture(_vita2d_context, 0, &texture->gxm_tex);
 
 	sceGxmSetVertexStream(_vita2d_context, 0, vertices);
-	sceGxmDraw(_vita2d_context, SCE_GXM_PRIMITIVE_TRIANGLE_STRIP, SCE_GXM_INDEX_FORMAT_U16, indices_buf_addr, 4);
+	sceGxmDraw(_vita2d_context, SCE_GXM_PRIMITIVE_TRIANGLE_STRIP, SCE_GXM_INDEX_FORMAT_U16, vita2d_get_linear_indices(), 4);
 }
 
 void vita2d_draw_texture(const vita2d_texture *texture, float x, float y)
@@ -416,7 +414,7 @@ static inline void draw_texture_rotate_hotspot_generic(const vita2d_texture *tex
 	sceGxmSetFragmentTexture(_vita2d_context, 0, &texture->gxm_tex);
 
 	sceGxmSetVertexStream(_vita2d_context, 0, vertices);
-	sceGxmDraw(_vita2d_context, SCE_GXM_PRIMITIVE_TRIANGLE_STRIP, SCE_GXM_INDEX_FORMAT_U16, indices_buf_addr, 4);
+	sceGxmDraw(_vita2d_context, SCE_GXM_PRIMITIVE_TRIANGLE_STRIP, SCE_GXM_INDEX_FORMAT_U16, vita2d_get_linear_indices(), 4);
 }
 
 void vita2d_draw_texture_rotate_hotspot(const vita2d_texture *texture, float x, float y, float rad, float center_x, float center_y)
@@ -471,7 +469,7 @@ static inline void draw_texture_scale_generic(const vita2d_texture *texture, flo
 	sceGxmSetFragmentTexture(_vita2d_context, 0, &texture->gxm_tex);
 
 	sceGxmSetVertexStream(_vita2d_context, 0, vertices);
-	sceGxmDraw(_vita2d_context, SCE_GXM_PRIMITIVE_TRIANGLE_STRIP, SCE_GXM_INDEX_FORMAT_U16, indices_buf_addr, 4);
+	sceGxmDraw(_vita2d_context, SCE_GXM_PRIMITIVE_TRIANGLE_STRIP, SCE_GXM_INDEX_FORMAT_U16, vita2d_get_linear_indices(), 4);
 }
 
 void vita2d_draw_texture_scale(const vita2d_texture *texture, float x, float y, float x_scale, float y_scale)
@@ -532,7 +530,7 @@ static inline void draw_texture_part_generic(const vita2d_texture *texture, floa
 	sceGxmSetFragmentTexture(_vita2d_context, 0, &texture->gxm_tex);
 
 	sceGxmSetVertexStream(_vita2d_context, 0, vertices);
-	sceGxmDraw(_vita2d_context, SCE_GXM_PRIMITIVE_TRIANGLE_STRIP, SCE_GXM_INDEX_FORMAT_U16, indices_buf_addr, 4);
+	sceGxmDraw(_vita2d_context, SCE_GXM_PRIMITIVE_TRIANGLE_STRIP, SCE_GXM_INDEX_FORMAT_U16, vita2d_get_linear_indices(), 4);
 }
 
 void vita2d_draw_texture_part(const vita2d_texture *texture, float x, float y, float tex_x, float tex_y, float tex_w, float tex_h)
@@ -595,7 +593,7 @@ static inline void draw_texture_part_scale_generic(const vita2d_texture *texture
 	sceGxmSetFragmentTexture(_vita2d_context, 0, &texture->gxm_tex);
 
 	sceGxmSetVertexStream(_vita2d_context, 0, vertices);
-	sceGxmDraw(_vita2d_context, SCE_GXM_PRIMITIVE_TRIANGLE_STRIP, SCE_GXM_INDEX_FORMAT_U16, indices_buf_addr, 4);
+	sceGxmDraw(_vita2d_context, SCE_GXM_PRIMITIVE_TRIANGLE_STRIP, SCE_GXM_INDEX_FORMAT_U16, vita2d_get_linear_indices(), 4);
 }
 
 void vita2d_draw_texture_part_scale(const vita2d_texture *texture, float x, float y, float tex_x, float tex_y, float tex_w, float tex_h, float x_scale, float y_scale)
@@ -662,7 +660,7 @@ static inline void draw_texture_scale_rotate_hotspot_generic(const vita2d_textur
 	sceGxmSetFragmentTexture(_vita2d_context, 0, &texture->gxm_tex);
 
 	sceGxmSetVertexStream(_vita2d_context, 0, vertices);
-	sceGxmDraw(_vita2d_context, SCE_GXM_PRIMITIVE_TRIANGLE_STRIP, SCE_GXM_INDEX_FORMAT_U16, indices_buf_addr, 4);
+	sceGxmDraw(_vita2d_context, SCE_GXM_PRIMITIVE_TRIANGLE_STRIP, SCE_GXM_INDEX_FORMAT_U16, vita2d_get_linear_indices(), 4);
 }
 
 void vita2d_draw_texture_scale_rotate_hotspot(const vita2d_texture *texture, float x, float y, float x_scale, float y_scale, float rad, float center_x, float center_y)
@@ -752,7 +750,7 @@ static inline void draw_texture_part_scale_rotate_generic(const vita2d_texture *
 	sceGxmSetFragmentTexture(_vita2d_context, 0, &texture->gxm_tex);
 
 	sceGxmSetVertexStream(_vita2d_context, 0, vertices);
-	sceGxmDraw(_vita2d_context, SCE_GXM_PRIMITIVE_TRIANGLE_STRIP, SCE_GXM_INDEX_FORMAT_U16, indices_buf_addr, 4);
+	sceGxmDraw(_vita2d_context, SCE_GXM_PRIMITIVE_TRIANGLE_STRIP, SCE_GXM_INDEX_FORMAT_U16, vita2d_get_linear_indices(), 4);
 }
 
 void vita2d_draw_texture_part_scale_rotate(const vita2d_texture *texture, float x, float y,
@@ -776,11 +774,6 @@ void vita2d_draw_texture_part_tint_scale_rotate(const vita2d_texture *texture, f
 
 void vita2d_draw_array_textured(const vita2d_texture *texture, SceGxmPrimitiveType mode, const vita2d_texture_vertex *vertices, size_t count, unsigned int color)
 {
-	uint16_t *indices = (uint16_t *)vita2d_pool_memalign(count * sizeof(uint16_t), sizeof(uint16_t));
-	for (int i = 0; i<count; i++) {
-		indices[i] = i;
-	}
-
 	set_texture_tint_program();
 	set_texture_wvp_uniform();
 	set_texture_tint_color_uniform(color);
@@ -791,5 +784,5 @@ void vita2d_draw_array_textured(const vita2d_texture *texture, SceGxmPrimitiveTy
 	sceGxmSetFragmentTexture(_vita2d_context, 0, &texture->gxm_tex);
 
 	sceGxmSetVertexStream(_vita2d_context, 0, vertices);
-	sceGxmDraw(_vita2d_context, mode, SCE_GXM_INDEX_FORMAT_U16, indices, count);
+	sceGxmDraw(_vita2d_context, mode, SCE_GXM_INDEX_FORMAT_U16, vita2d_get_linear_indices(), count);
 }
