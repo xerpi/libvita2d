@@ -2,8 +2,6 @@
 #include "vita2d.h"
 #include "shared.h"
 
-extern void *indices_buf_addr;
-
 void vita2d_draw_pixel(float x, float y, unsigned int color)
 {
 	vita2d_color_vertex *vertex = (vita2d_color_vertex *)vita2d_pool_memalign(
@@ -59,7 +57,7 @@ void vita2d_draw_line(float x0, float y0, float x1, float y1, unsigned int color
 
 	sceGxmSetVertexStream(_vita2d_context, 0, vertices);
 	sceGxmSetFrontPolygonMode(_vita2d_context, SCE_GXM_POLYGON_MODE_LINE);
-	sceGxmDraw(_vita2d_context, SCE_GXM_PRIMITIVE_LINES, SCE_GXM_INDEX_FORMAT_U16, indices_buf_addr, 2);
+	sceGxmDraw(_vita2d_context, SCE_GXM_PRIMITIVE_LINES, SCE_GXM_INDEX_FORMAT_U16, vita2d_get_linear_indices(), 2);
 	sceGxmSetFrontPolygonMode(_vita2d_context, SCE_GXM_POLYGON_MODE_TRIANGLE_FILL);
 }
 
@@ -97,7 +95,7 @@ void vita2d_draw_rectangle(float x, float y, float w, float h, unsigned int colo
 	sceGxmSetUniformDataF(vertexDefaultBuffer, _vita2d_colorWvpParam, 0, 16, _vita2d_ortho_matrix);
 
 	sceGxmSetVertexStream(_vita2d_context, 0, vertices);
-	sceGxmDraw(_vita2d_context, SCE_GXM_PRIMITIVE_TRIANGLE_STRIP, SCE_GXM_INDEX_FORMAT_U16, indices_buf_addr, 4);
+	sceGxmDraw(_vita2d_context, SCE_GXM_PRIMITIVE_TRIANGLE_STRIP, SCE_GXM_INDEX_FORMAT_U16, vita2d_get_linear_indices(), 4);
 }
 
 void vita2d_draw_fill_circle(float x, float y, float radius, unsigned int color)
@@ -154,11 +152,6 @@ void vita2d_draw_fill_circle(float x, float y, float radius, unsigned int color)
 
 void vita2d_draw_array(SceGxmPrimitiveType mode, const vita2d_color_vertex *vertices, size_t count)
 {
-	uint16_t *indices = (uint16_t *)vita2d_pool_memalign(count * sizeof(uint16_t), sizeof(uint16_t));
-	for (int i = 0; i<count; i++) {
-		indices[i] = i;
-	}
-
 	sceGxmSetVertexProgram(_vita2d_context, _vita2d_colorVertexProgram);
 	sceGxmSetFragmentProgram(_vita2d_context, _vita2d_colorFragmentProgram);
 
@@ -169,5 +162,5 @@ void vita2d_draw_array(SceGxmPrimitiveType mode, const vita2d_color_vertex *vert
 	sceGxmSetBackPolygonMode(_vita2d_context, SCE_GXM_POLYGON_MODE_TRIANGLE_FILL);
 
 	sceGxmSetVertexStream(_vita2d_context, 0, vertices);
-	sceGxmDraw(_vita2d_context, mode, SCE_GXM_INDEX_FORMAT_U16, indices, count);
+	sceGxmDraw(_vita2d_context, mode, SCE_GXM_INDEX_FORMAT_U16, vita2d_get_linear_indices(), count);
 }

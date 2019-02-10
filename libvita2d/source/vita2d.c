@@ -102,9 +102,9 @@ static SceUID patcherVertexUsseUid;
 static SceUID patcherFragmentUsseUid;
 
 static SceUID clearVerticesUid;
-static SceUID clearIndicesUid;
+static SceUID linearIndicesUid;
 static vita2d_clear_vertex *clearVertices = NULL;
-static uint16_t *clearIndices = NULL;
+static uint16_t *linearIndices = NULL;
 
 /* Shared with other .c */
 float _vita2d_ortho_matrix[4*4];
@@ -135,10 +135,6 @@ static void *pool_addr = NULL;
 static SceUID poolUid;
 static unsigned int pool_index = 0;
 static unsigned int pool_size = 0;
-
-// Indices buffer
-static SceUID indicesUid;
-void *indices_buf_addr = NULL;
 
 /* Static functions */
 
@@ -537,12 +533,20 @@ static int vita2d_init_internal(unsigned int temp_pool_size, SceGxmMultisampleMo
 		SCE_GXM_MEMORY_ATTRIB_READ,
 		&clearVerticesUid);
 
-	clearIndices = (uint16_t *)gpu_alloc(
+	// Allocate a 64k * 2 bytes = 128 KiB buffer and store all possible
+	// 16-bit indices in linear ascending order, so we can use this for
+	// all drawing operations where we don't want to use indexing.
+	linearIndices = (uint16_t *)gpu_alloc(
 		SCE_KERNEL_MEMBLOCK_TYPE_USER_RW_UNCACHE,
-		3*sizeof(uint16_t),
-		2,
+		UINT16_MAX*sizeof(uint16_t),
+		sizeof(uint16_t),
 		SCE_GXM_MEMORY_ATTRIB_READ,
-		&clearIndicesUid);
+		&linearIndicesUid);
+
+        // Range of i must be greater than uint16_t, this doesn't endless-loop
+	for (uint32_t i=0; i<=UINT16_MAX; ++i) {
+		linearIndices[i] = i;
+	}
 
 	clearVertices[0].x = -1.0f;
 	clearVertices[0].y = -1.0f;
@@ -550,10 +554,6 @@ static int vita2d_init_internal(unsigned int temp_pool_size, SceGxmMultisampleMo
 	clearVertices[1].y = -1.0f;
 	clearVertices[2].x = -1.0f;
 	clearVertices[2].y =  3.0f;
-
-	clearIndices[0] = 0;
-	clearIndices[1] = 1;
-	clearIndices[2] = 2;
 
 	const SceGxmProgramParameter *paramColorPositionAttribute = sceGxmProgramFindParameterByName(colorVertexProgramGxp, "aPosition");
 	DEBUG("aPosition sceGxmProgramFindParameterByName(): %p\n", paramColorPositionAttribute);
@@ -659,20 +659,6 @@ static int vita2d_init_internal(unsigned int temp_pool_size, SceGxmMultisampleMo
 		SCE_GXM_MEMORY_ATTRIB_READ,
 		&poolUid);
 		
-	// Allocate memory for indices buffer
-	indices_buf_addr = gpu_alloc(
-		SCE_KERNEL_MEMBLOCK_TYPE_USER_RW,
-		4 * sizeof(uint16_t),
-		sizeof(void *),
-		SCE_GXM_MEMORY_ATTRIB_READ,
-		&indicesUid);
-		
-	// Initializing indices buffer
-	uint16_t *indices = (uint16_t*)indices_buf_addr;
-	indices[0] = 0;
-	indices[1] = 1;
-	indices[2] = 2;
-	indices[3] = 3;
 
 	matrix_init_orthographic(_vita2d_ortho_matrix, 0.0f, DISPLAY_WIDTH, DISPLAY_HEIGHT, 0.0f, 0.0f, 1.0f);
 
@@ -729,7 +715,7 @@ int vita2d_fini()
 	_vita2d_free_fragment_programs(&_vita2d_fragmentPrograms.blend_mode_normal);
 	_vita2d_free_fragment_programs(&_vita2d_fragmentPrograms.blend_mode_add);
 
-	gpu_free(clearIndicesUid);
+	gpu_free(linearIndicesUid);
 	gpu_free(clearVerticesUid);
 
 	// wait until display queue is finished before deallocating display buffers
@@ -776,7 +762,6 @@ int vita2d_fini()
 	free(contextParams.hostMem);
 
 	gpu_free(poolUid);
-	gpu_free(indicesUid);
 
 	// terminate libgxm
 	sceGxmTerminate();
@@ -802,7 +787,7 @@ void vita2d_clear_screen()
 
 	// draw the clear triangle
 	sceGxmSetVertexStream(_vita2d_context, 0, clearVertices);
-	sceGxmDraw(_vita2d_context, SCE_GXM_PRIMITIVE_TRIANGLES, SCE_GXM_INDEX_FORMAT_U16, clearIndices, 3);
+	sceGxmDraw(_vita2d_context, SCE_GXM_PRIMITIVE_TRIANGLES, SCE_GXM_INDEX_FORMAT_U16, linearIndices, 3);
 }
 
 void vita2d_swap_buffers()
@@ -999,6 +984,11 @@ SceGxmContext *vita2d_get_context()
 SceGxmShaderPatcher *vita2d_get_shader_patcher()
 {
 	return shaderPatcher;
+}
+
+const uint16_t *vita2d_get_linear_indices()
+{
+	return linearIndices;
 }
 
 void vita2d_set_region_clip(SceGxmRegionClipMode mode, unsigned int x_min, unsigned int y_min, unsigned int x_max, unsigned int y_max)
