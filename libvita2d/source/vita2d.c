@@ -738,6 +738,10 @@ int vita2d_fini()
 	// wait until rendering is done
 	sceGxmFinish(_vita2d_context);
 
+	// in case vita2d_free_texture() was called after the last vita2d_swap_buffers(),
+	// we need to GC textures here again, otherwise we would leak texture objects
+	vita2d_gc_textures();
+
 	// clean up allocations
 	sceGxmShaderPatcherReleaseFragmentProgram(shaderPatcher, clearFragmentProgram);
 	sceGxmShaderPatcherReleaseVertexProgram(shaderPatcher, clearVertexProgram);
@@ -844,6 +848,9 @@ void vita2d_swap_buffers()
 		frontBufferIndex = backBufferIndex;
 		backBufferIndex = (backBufferIndex + 1) % DISPLAY_BUFFER_COUNT;
 	}
+
+	// free any textures marked for deletion
+	vita2d_gc_textures();
 }
 
 void vita2d_start_drawing()
