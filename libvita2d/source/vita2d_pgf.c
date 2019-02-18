@@ -258,14 +258,6 @@ int generic_pgf_draw_text(vita2d_pgf *font, int draw, int *height,
 			  int x, int y, unsigned int color, float scale,
 			  const char *text)
 {
-	return generic_pgf_draw_text_ls(font, draw, height, x, y, 0.0f, color, scale, text);
-}
-
-
-int generic_pgf_draw_text_ls(vita2d_pgf *font, int draw, int *height,
-			  int x, int y, float linespace, unsigned int color, float scale,
-			  const char *text)
-{
 	sceKernelLockLwMutex(&font->mutex, 1, NULL);
 
 	int i;
@@ -285,7 +277,7 @@ int generic_pgf_draw_text_ls(vita2d_pgf *font, int draw, int *height,
 			if (pen_x > max_x)
 				max_x = pen_x;
 			pen_x = start_x;
-			pen_y += font->vsize * scale + linespace;
+			pen_y += font->vsize * scale;
 			continue;
 		}
 
@@ -330,13 +322,6 @@ int vita2d_pgf_draw_text(vita2d_pgf *font, int x, int y,
 	return generic_pgf_draw_text(font, 1, NULL, x, y, color, scale, text);
 }
 
-int vita2d_pgf_draw_text_ls(vita2d_pgf *font, int x, int y, float linespace,
-			 unsigned int color, float scale,
-			 const char *text)
-{
-	return generic_pgf_draw_text_ls(font, 1, NULL, x, y, linespace, color, scale, text);
-}
-
 int vita2d_pgf_draw_textf(vita2d_pgf *font, int x, int y,
 			  unsigned int color, float scale,
 			  const char *text, ...)
@@ -347,18 +332,6 @@ int vita2d_pgf_draw_textf(vita2d_pgf *font, int x, int y,
 	vsnprintf(buf, sizeof(buf), text, argptr);
 	va_end(argptr);
 	return vita2d_pgf_draw_text(font, x, y, color, scale, buf);
-}
-
-int vita2d_pgf_draw_textf_ls(vita2d_pgf *font, int x, int y, float linespace,
-			  unsigned int color, float scale,
-			  const char *text, ...)
-{
-	char buf[1024];
-	va_list argptr;
-	va_start(argptr, text);
-	vsnprintf(buf, sizeof(buf), text, argptr);
-	va_end(argptr);
-	return vita2d_pgf_draw_text_ls(font, x, y, linespace, color, scale, buf);
 }
 
 void vita2d_pgf_text_dimensions(vita2d_pgf *font, float scale,
