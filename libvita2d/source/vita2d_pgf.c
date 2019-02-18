@@ -255,6 +255,14 @@ static int atlas_add_glyph(vita2d_pgf *font, unsigned int character)
 }
 
 int generic_pgf_draw_text(vita2d_pgf *font, int draw, int *height,
+			  int x, int y, unsigned int color, float scale,
+			  const char *text)
+{
+	return generic_pgf_draw_text_ls(font, draw, height, x, y, 0.0f, color, scale, text);
+}
+
+
+int generic_pgf_draw_text_ls(vita2d_pgf *font, int draw, int *height,
 			  int x, int y, float linespace, unsigned int color, float scale,
 			  const char *text)
 {
@@ -315,14 +323,21 @@ int generic_pgf_draw_text(vita2d_pgf *font, int draw, int *height,
 	return max_x - x;
 }
 
-int vita2d_pgf_draw_text(vita2d_pgf *font, int x, int y, float linespace,
+int vita2d_pgf_draw_text(vita2d_pgf *font, int x, int y,
 			 unsigned int color, float scale,
 			 const char *text)
 {
-	return generic_pgf_draw_text(font, 1, NULL, x, y, linespace, color, scale, text);
+	return generic_pgf_draw_text(font, 1, NULL, x, y, color, scale, text);
 }
 
-int vita2d_pgf_draw_textf(vita2d_pgf *font, int x, int y, float linespace,
+int vita2d_pgf_draw_text_ls(vita2d_pgf *font, int x, int y, float linespace,
+			 unsigned int color, float scale,
+			 const char *text)
+{
+	return generic_pgf_draw_text_ls(font, 1, NULL, x, y, linespace, color, scale, text);
+}
+
+int vita2d_pgf_draw_textf(vita2d_pgf *font, int x, int y,
 			  unsigned int color, float scale,
 			  const char *text, ...)
 {
@@ -331,14 +346,26 @@ int vita2d_pgf_draw_textf(vita2d_pgf *font, int x, int y, float linespace,
 	va_start(argptr, text);
 	vsnprintf(buf, sizeof(buf), text, argptr);
 	va_end(argptr);
-	return vita2d_pgf_draw_text(font, x, y, linespace, color, scale, buf);
+	return vita2d_pgf_draw_text(font, x, y, color, scale, buf);
+}
+
+int vita2d_pgf_draw_textf_ls(vita2d_pgf *font, int x, int y, float linespace,
+			  unsigned int color, float scale,
+			  const char *text, ...)
+{
+	char buf[1024];
+	va_list argptr;
+	va_start(argptr, text);
+	vsnprintf(buf, sizeof(buf), text, argptr);
+	va_end(argptr);
+	return vita2d_pgf_draw_text_ls(font, x, y, linespace, color, scale, buf);
 }
 
 void vita2d_pgf_text_dimensions(vita2d_pgf *font, float scale,
 				const char *text, int *width, int *height)
 {
 	int w;
-	w = generic_pgf_draw_text(font, 0, height, 0, 0, 0, 0, scale, text);
+	w = generic_pgf_draw_text(font, 0, height, 0, 0, 0, scale, text);
 
 	if (width)
 		*width = w;
