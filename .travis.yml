@@ -14,5 +14,5 @@ script:
     - rm vdpm
     - mkdir build
     - cd build
-    - cmake .. --target install
+    - cmake ..
     - make
