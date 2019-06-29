@@ -8,9 +8,9 @@ if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     endif()
 endif()
 
-
-project(libvita2d)
+project(vita2d)
 include("${VITASDK}/share/vita.cmake" REQUIRED)
+include_directories(include)
 
 set(SRC_FILES
         source/vita2d.c
@@ -27,27 +27,22 @@ set(SRC_FILES
         source/texture_atlas.c
         source/int_htab.c)
 
-set(SHADERS_FILES
-        shader/compiled/clear_v_gxp.cg
-        shader/compiled/clear_f_gxp.cg
-        shader/compiled/color_v_gxp.cg
-        shader/compiled/color_f_gxp.cg
-        shader/compiled/texture_v_gxp.cg
-        shader/compiled/texture_f_gxp.cg
-        shader/compiled/texture_tint_f_gxp.cg)
+set(SHADER_FILES
+        shader/compiled/clear_v_gxp.o
+        shader/compiled/clear_f_gxp.o
+        shader/compiled/color_v_gxp.o
+        shader/compiled/color_f_gxp.o
+        shader/compiled/texture_v_gxp.o
+        shader/compiled/texture_f_gxp.o
+        shader/compiled/texture_tint_f_gxp.o
+        )
 
-set(INC_FILES
-        include)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,-q -Wall -O3 -I$(VITASDK)/arm-vita-eabi/include/freetype2 -ffat-lto-objects -flto")
 
-set(TARGET_LIB
-        ${SRC_FILES}
-        ${SHADER_FILES})
+add_library(${PROJECT_NAME}
+        ${SHADER_FILES}
+        ${SRC_FILES})
+target_link_libraries(${PROJECT_NAME} freetype)
 
-set(CFLAGS -Wl,-q -Wall -O3 -I${INC_FILES} -I$ENV{VITASDK}/arm-vita-eabi/include/freetype2 -ffat-lto-objects -flto)
-
-add_library(${PROJECT_NAME} STATIC ${TARGET_LIB})
-target_include_directories(${PROJECT_NAME} PRIVATE ${INC_FILES})
-target_compile_options(${PROJECT_NAME} PRIVATE ${CFLAGS})
-
-install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
-install(FILES include/vita2d.h DESTINATION include)
+install(FILES ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.a DESTINATION lib)
+install(FILES ${PROJECT_SOURCE_DIR}/include/vita2d.h DESTINATION include)
