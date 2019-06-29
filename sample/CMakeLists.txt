@@ -18,7 +18,7 @@ project(vita2dsample)
 # to build Vita specific artifacts (self/vpk).
 include("${VITASDK}/share/vita.cmake" REQUIRED)
 
-set(VITA_APP_NAME ${CMAKE_PROJECT_NAME})
+set(VITA_APP_NAME ${PROJECT_NAME})
 set(VITA_TITLEID  "VITA2DTST")
 
 
@@ -35,7 +35,7 @@ FUNCTION(ADD_RESOURCES out_var)
                 COMMAND ${CMAKE_COMMAND} -E make_directory ${out_dir}
                 COMMAND ${CMAKE_LINKER} -r -b binary -o ${out_f} ${in_f}
                 DEPENDS ${in_f}
-                WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+                WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
                 COMMENT "Building resource ${out_f}"
                 VERBATIM
                 )
@@ -45,19 +45,19 @@ FUNCTION(ADD_RESOURCES out_var)
 ENDFUNCTION()
 
 file(GLOB res_files RELATIVE
-        ${CMAKE_SOURCE_DIR}
-        *.png
+        ${PROJECT_SOURCE_DIR}
+        image.png
         )
 add_resources(vita2dsample_res ${res_files})
 
 
-add_executable(${CMAKE_PROJECT_NAME}
+add_executable(${PROJECT_NAME}
         ${vita2dsample_res}
         main.c
         )
 
 # Library to link to (drop the -l prefix). This will mostly be stubs.
-target_link_libraries(${CMAKE_PROJECT_NAME}
+target_link_libraries(${PROJECT_NAME}
         vita2d
         SceDisplay_stub
         SceGxm_stub
@@ -75,8 +75,8 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
         )
 
 
-vita_create_self(eboot.bin ${CMAKE_PROJECT_NAME})
-vita_create_vpk(${CMAKE_PROJECT_NAME}.vpk ${VITA_TITLEID} eboot.bin
+vita_create_self(eboot.bin ${PROJECT_NAME})
+vita_create_vpk(${PROJECT_NAME}.vpk ${VITA_TITLEID} eboot.bin
         VERSION ${VITA_VERSION}
         NAME ${VITA_APP_NAME}
         )
@@ -84,7 +84,6 @@ vita_create_vpk(${CMAKE_PROJECT_NAME}.vpk ${VITA_TITLEID} eboot.bin
 
 add_custom_target(send
         COMMAND curl -T eboot.bin ftp://$ENV{PSVITAIP}:1337/ux0:/app/${VITA_TITLEID}/
-        COMMAND echo "Sent."
         DEPENDS eboot.bin
         )
 
@@ -95,7 +94,7 @@ add_custom_target(copy
 
 add_custom_target(vpksend
         COMMAND curl -T .vpk ftp://$ENV{PSVITAIP}:1337/ux0:/data/
-        DEPENDS ${CMAKE_PROJECT_NAME}.vpk
+        DEPENDS ${PROJECT_NAME}.vpk
         )
 
 
