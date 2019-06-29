@@ -56,7 +56,6 @@ add_executable(${PROJECT_NAME}
         main.c
         )
 
-# Library to link to (drop the -l prefix). This will mostly be stubs.
 target_link_libraries(${PROJECT_NAME}
         vita2d
         SceDisplay_stub

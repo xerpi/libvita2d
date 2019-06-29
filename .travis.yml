@@ -1,4 +1,4 @@
-language: cpp
+language: c
 sudo: false
 
 script:
@@ -14,5 +14,5 @@ script:
     - rm vdpm
     - mkdir build
     - cd build
-    - cmake ..
+    - cmake .. --target install
     - make
