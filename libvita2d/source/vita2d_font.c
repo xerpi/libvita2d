@@ -213,7 +213,7 @@ static int atlas_add_glyph(texture_atlas *atlas, unsigned int glyph_index,
 }
 
 static int generic_font_draw_text(vita2d_font *font, int draw,
-				   int *height, int x, int y, float linespace,
+				   int *height, int x, int y, float line_space, float letter_spacing,
 				   unsigned int color,
 				   unsigned int size,
 				   const char *text)
@@ -254,7 +254,7 @@ static int generic_font_draw_text(vita2d_font *font, int draw,
 			if (pen_x > max_x)
 				max_x = pen_x;
 			pen_x = start_x;
-			pen_y += size + linespace;
+			pen_y += size + line_space;
 			continue;
 		}
 
@@ -269,6 +269,8 @@ static int generic_font_draw_text(vita2d_font *font, int draw,
 				       FT_KERNING_DEFAULT, &delta);
 			pen_x += delta.x >> 6;
 		}
+
+        pen_x += letter_spacing;
 
 		if (!texture_atlas_get(font->atlas, glyph_index, &rect, &data)) {
 			FTC_ImageCache_LookupScaler(font->imagecache,
@@ -314,7 +316,7 @@ static int generic_font_draw_text(vita2d_font *font, int draw,
 int vita2d_font_draw_text(vita2d_font *font, int x, int y, unsigned int color,
 			   unsigned int size, const char *text)
 {
-	return generic_font_draw_text(font, 1, NULL, x, y, 0.0f, color, size, text);
+	return generic_font_draw_text(font, 1, NULL, x, y, 0.0f, 0, color, size, text);
 }
 
 int vita2d_font_draw_textf(vita2d_font *font, int x, int y, unsigned int color,
@@ -330,13 +332,13 @@ int vita2d_font_draw_textf(vita2d_font *font, int x, int y, unsigned int color,
 	return vita2d_font_draw_text(font, x, y, color, size, buf);
 }
 
-int vita2d_font_draw_text_ls(vita2d_font *font, int x, int y, float linespace, unsigned int color,
+int vita2d_font_draw_text_advanced(vita2d_font *font, int x, int y, float line_space, float letter_spacing, unsigned int color,
 			   unsigned int size, const char *text)
 {
-	return generic_font_draw_text(font, 1, NULL, x, y, linespace, color, size, text);
+	return generic_font_draw_text(font, 1, NULL, x, y, line_space, letter_spacing, color, size, text);
 }
 
-int vita2d_font_draw_textf_ls(vita2d_font *font, int x, int y, float linespace, unsigned int color,
+int vita2d_font_draw_textf_advanced(vita2d_font *font, int x, int y, float line_space, float letter_spacing, unsigned int color,
 			   unsigned int size, const char *text, ...)
 {
 	char buf[1024];
@@ -346,14 +348,14 @@ int vita2d_font_draw_textf_ls(vita2d_font *font, int x, int y, float linespace, 
 	vsnprintf(buf, sizeof(buf), text, argptr);
 	va_end(argptr);
 
-	return vita2d_font_draw_text_ls(font, x, y, linespace, color, size, buf);
+	return vita2d_font_draw_text_advanced(font, x, y, line_space, letter_spacing, color, size, buf);
 }
 
 void vita2d_font_text_dimensions(vita2d_font *font, unsigned int size,
 				 const char *text, int *width, int *height)
 {
 	int w;
-	w = generic_font_draw_text(font, 0, height, 0.0f, 0, 0, 0, size, text);
+	w = generic_font_draw_text(font, 0, height, 0.0f, 0.0f, 0, 0, 0, size, text);
 
 	if (width)
 		*width = w;

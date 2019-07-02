@@ -44,5 +44,5 @@ add_library(${PROJECT_NAME}
         ${SRC_FILES})
 target_link_libraries(${PROJECT_NAME} freetype)
 
-install(FILES ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.a DESTINATION lib)
+install(FILES ${PROJECT_BINARY_DIR}/lib${PROJECT_NAME}.a DESTINATION lib)
 install(FILES ${PROJECT_SOURCE_DIR}/include/vita2d.h DESTINATION include)
