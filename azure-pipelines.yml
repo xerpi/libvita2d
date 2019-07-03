@@ -14,12 +14,12 @@ steps:
 
 - script: |
     cd libvita2d
-    export PREFIX=arm-vita-eabi
+    export PREFIX=distrib/arm-vita-eabi
     make install
   displayName: 'Install in isolated dir'
 
 - task: PublishPipelineArtifact@1
   inputs:
-    path: libvita2d/arm-vita-eabi
+    path: libvita2d/distrib
     artifact: 'vita2d package'
   displayName: 'Upload vita2d to artifacts'
