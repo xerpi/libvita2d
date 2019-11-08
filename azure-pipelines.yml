@@ -1,0 +1,25 @@
+
+# https://aka.ms/yaml
+
+pool:
+  vmImage: 'ubuntu-16.04'
+
+container: gnuton/vitasdk-docker:latest
+
+steps:
+- script: |
+    cd libvita2d
+    make
+  displayName: 'Build'
+
+- script: |
+    cd libvita2d
+    export PREFIX=distrib/arm-vita-eabi
+    make install
+  displayName: 'Install in isolated dir'
+
+- task: PublishPipelineArtifact@1
+  inputs:
+    path: libvita2d/distrib
+    artifact: 'vita2d package'
+  displayName: 'Upload vita2d to artifacts'
