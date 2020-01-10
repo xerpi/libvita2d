@@ -70,7 +70,7 @@ vita2d_texture *vita2d_load_JPEG_file(const char *filename)
 	fread(&magic, 1, sizeof(unsigned int), fp);
 	fseek(fp, 0, SEEK_SET);
 
-	if (magic != 0xE0FFD8FF && magic != 0xE1FFD8FF) {
+	if (magic != 0xE0FFD8FF && magic != 0xE1FFD8FF && magic != 0xDBFFD8FF) {
 		fclose(fp);
 		return NULL;
 	}
