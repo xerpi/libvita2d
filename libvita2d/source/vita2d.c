@@ -1,9 +1,11 @@
+#include <psp2/appmgr.h>
 #include <psp2/display.h>
 #include <psp2/gxm.h>
 #include <psp2/types.h>
 #include <psp2/kernel/sysmem.h>
 #include <psp2/message_dialog.h>
 #include <psp2/sysmodule.h>
+#include <psp2/sharedfb.h>
 #include <string.h>
 #include <stdlib.h>
 #include "vita2d.h"
@@ -20,7 +22,7 @@
 
 #define DISPLAY_WIDTH			960
 #define DISPLAY_HEIGHT			544
-#define DISPLAY_STRIDE_IN_PIXELS	1024
+#define DISPLAY_STRIDE_IN_PIXELS	960
 #define DISPLAY_COLOR_FORMAT		SCE_GXM_COLOR_FORMAT_A8B8G8R8
 #define DISPLAY_PIXEL_FORMAT		SCE_DISPLAY_PIXELFORMAT_A8B8G8R8
 #define DISPLAY_BUFFER_COUNT		3
@@ -63,6 +65,10 @@ static int clip_rect_y_max = DISPLAY_HEIGHT;
 static int vblank_wait = 1;
 static int drawing = 0;
 static int clipping_enabled = 0;
+
+static int system_app_mode = 0;
+static SceUID shared_fb;
+static SceSharedFbInfo shared_fb_info;
 
 static SceUID vdmRingBufferUid;
 static SceUID vertexRingBufferUid;
@@ -224,17 +230,38 @@ static int vita2d_init_internal(unsigned int temp_pool_size, SceGxmMultisampleMo
 		DEBUG("libvita2d is already initialized!\n");
 		return 1;
 	}
+	
+	SceAppMgrBudgetInfo info;
+	info.size = sizeof(SceAppMgrBudgetInfo);
+	if (!sceAppMgrGetBudgetInfo(&info)) system_app_mode = 1;
 
 	SceGxmInitializeParams initializeParams;
 	memset(&initializeParams, 0, sizeof(SceGxmInitializeParams));
-	initializeParams.flags				= 0;
+	initializeParams.flags				= system_app_mode ? 0x0A : 0;
 	initializeParams.displayQueueMaxPendingCount	= DISPLAY_MAX_PENDING_SWAPS;
 	initializeParams.displayQueueCallback		= display_callback;
 	initializeParams.displayQueueCallbackDataSize	= sizeof(vita2d_display_data);
-	initializeParams.parameterBufferSize		= SCE_GXM_DEFAULT_PARAMETER_BUFFER_SIZE;
+	initializeParams.parameterBufferSize		= system_app_mode ? 2 * 1024 * 1024 : SCE_GXM_DEFAULT_PARAMETER_BUFFER_SIZE;
 
-	err = sceGxmInitialize(&initializeParams);
+	err = system_app_mode ? sceGxmVshInitialize(&initializeParams) : sceGxmInitialize(&initializeParams);
 	DEBUG("sceGxmInitialize(): 0x%08X\n", err);
+	
+	// Since CDRAM memory is unaccessible in system app mode, we force USER_RW usage at init phase
+	if (system_app_mode) vita2d_texture_set_alloc_memblock_type(SCE_KERNEL_MEMBLOCK_TYPE_USER_RW);
+	
+	while (system_app_mode) {
+		shared_fb = sceSharedFbOpen(1);
+		memset(&shared_fb_info, 0, sizeof(SceSharedFbInfo));
+		sceSharedFbGetInfo(shared_fb, &shared_fb_info);
+		if (shared_fb_info.index == 1) sceSharedFbClose(shared_fb);
+		else {
+			sceGxmMapMemory(shared_fb_info.fb_base, shared_fb_info.fb_size, SCE_GXM_MEMORY_ATTRIB_READ | SCE_GXM_MEMORY_ATTRIB_WRITE);
+			displayBufferData[0] = shared_fb_info.fb_base;
+			displayBufferData[1] = shared_fb_info.fb_base2;
+			memset(&shared_fb_info, 0, sizeof(SceSharedFbInfo));
+			break;
+		}
+	}
 
 	// allocate ring buffer memory using default sizes
 	void *vdmRingBuffer = gpu_alloc(
@@ -297,22 +324,25 @@ static int vita2d_init_internal(unsigned int temp_pool_size, SceGxmMultisampleMo
 
 	// allocate memory and sync objects for display buffers
 	for (i = 0; i < DISPLAY_BUFFER_COUNT; i++) {
+		
 		// allocate memory for display
-		displayBufferData[i] = gpu_alloc(
-			SCE_KERNEL_MEMBLOCK_TYPE_USER_CDRAM_RW,
-			4*DISPLAY_STRIDE_IN_PIXELS*DISPLAY_HEIGHT,
-			SCE_GXM_COLOR_SURFACE_ALIGNMENT,
-			SCE_GXM_MEMORY_ATTRIB_READ | SCE_GXM_MEMORY_ATTRIB_WRITE,
-			&displayBufferUid[i]);
-
-		// memset the buffer to black
-		for (y = 0; y < DISPLAY_HEIGHT; y++) {
-			unsigned int *row = (unsigned int *)displayBufferData[i] + y*DISPLAY_STRIDE_IN_PIXELS;
-			for (x = 0; x < DISPLAY_WIDTH; x++) {
-				row[x] = 0xff000000;
+		if (!system_app_mode) {
+			displayBufferData[i] = gpu_alloc(
+				SCE_KERNEL_MEMBLOCK_TYPE_USER_CDRAM_RW,
+				4*DISPLAY_STRIDE_IN_PIXELS*DISPLAY_HEIGHT,
+				SCE_GXM_COLOR_SURFACE_ALIGNMENT,
+				SCE_GXM_MEMORY_ATTRIB_READ | SCE_GXM_MEMORY_ATTRIB_WRITE,
+				&displayBufferUid[i]);
+		
+			// memset the buffer to black
+			for (y = 0; y < DISPLAY_HEIGHT; y++) {
+				unsigned int *row = (unsigned int *)displayBufferData[i] + y*DISPLAY_STRIDE_IN_PIXELS;
+				for (x = 0; x < DISPLAY_WIDTH; x++) {
+					row[x] = 0xff000000;
+				}
 			}
 		}
-
+		
 		// initialize a color surface for this display buffer
 		err = sceGxmColorSurfaceInit(
 			&displaySurface[i],
@@ -702,6 +732,8 @@ int vita2d_fini()
 		DEBUG("libvita2d is not initialized!\n");
 		return 1;
 	}
+	
+	if (system_app_mode) sceSharedFbBegin(shared_fb, &shared_fb_info);
 
 	// wait until rendering is done
 	sceGxmFinish(_vita2d_context);
@@ -769,6 +801,12 @@ int vita2d_fini()
 	/* if (pgf_module_was_loaded != SCE_SYSMODULE_LOADED)
 		sceSysmoduleUnloadModule(SCE_SYSMODULE_PGF); */
 
+	if (system_app_mode) {
+		sceGxmUnmapMemory(shared_fb_info.fb_base);
+		sceSharedFbEnd(shared_fb);
+		sceSharedFbClose(shared_fb);
+	}
+
 	vita2d_initialized = 0;
 
 	return 1;
@@ -792,19 +830,20 @@ void vita2d_clear_screen()
 
 void vita2d_swap_buffers()
 {
-	sceGxmPadHeartbeat(&displaySurface[backBufferIndex], displayBufferSync[backBufferIndex]);
+	if (system_app_mode) sceSharedFbEnd(shared_fb);
+	else {
+		// queue the display swap for this frame
+		vita2d_display_data displayData;
+		displayData.address = displayBufferData[backBufferIndex];
+		sceGxmDisplayQueueAddEntry(
+			displayBufferSync[frontBufferIndex],	// OLD fb
+			displayBufferSync[backBufferIndex],	// NEW fb
+			&displayData);
 
-	// queue the display swap for this frame
-	vita2d_display_data displayData;
-	displayData.address = displayBufferData[backBufferIndex];
-	sceGxmDisplayQueueAddEntry(
-		displayBufferSync[frontBufferIndex],	// OLD fb
-		displayBufferSync[backBufferIndex],	// NEW fb
-		&displayData);
-
-	// update buffer indices
-	frontBufferIndex = backBufferIndex;
-	backBufferIndex = (backBufferIndex + 1) % DISPLAY_BUFFER_COUNT;
+		// update buffer indices
+		frontBufferIndex = backBufferIndex;
+		backBufferIndex = (backBufferIndex + 1) % DISPLAY_BUFFER_COUNT;
+	}
 }
 
 void vita2d_start_drawing()
@@ -817,6 +856,11 @@ void vita2d_start_drawing_advanced(vita2d_texture *target, unsigned int flags)
 {
 
 	if (target == NULL) {
+		if (system_app_mode) {
+			sceSharedFbBegin(shared_fb, &shared_fb_info);
+			shared_fb_info.vsync = vblank_wait;
+			backBufferIndex = (shared_fb_info.index + 1) % 2;
+		}
 		sceGxmBeginScene(
 		_vita2d_context,
 		flags,
@@ -848,6 +892,7 @@ void vita2d_start_drawing_advanced(vita2d_texture *target, unsigned int flags)
 void vita2d_end_drawing()
 {
 	sceGxmEndScene(_vita2d_context, NULL, NULL);
+	if (system_app_mode && vblank_wait) sceDisplayWaitVblankStart();
 	drawing = 0;
 }
 
