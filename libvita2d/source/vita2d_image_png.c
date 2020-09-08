@@ -51,36 +51,35 @@ static vita2d_texture *_vita2d_load_PNG_generic(const void *io_ptr, png_rw_ptr r
 	png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth,
 		&color_type, NULL, NULL, NULL);
 
-	if ((color_type == PNG_COLOR_TYPE_PALETTE && bit_depth <= 8)
-		|| (color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8)
-		|| png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS)
-		|| (bit_depth == 16)) {
-			png_set_expand(png_ptr);
+	if (bit_depth == 16) {
+		png_set_scale_16(png_ptr);
+		bit_depth = 8;
 	}
 
-	if (bit_depth == 16)
-		png_set_scale_16(png_ptr);
-
-	if (bit_depth == 8 && color_type == PNG_COLOR_TYPE_RGB)
-		png_set_filler(png_ptr, 0xFF, PNG_FILLER_AFTER);
-
 	if (color_type == PNG_COLOR_TYPE_GRAY ||
-	    color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
+	    color_type == PNG_COLOR_TYPE_GRAY_ALPHA) {
 		png_set_gray_to_rgb(png_ptr);
+		if (color_type == PNG_COLOR_TYPE_GRAY) {
+			color_type = PNG_COLOR_TYPE_RGB;
+		} else {
+			color_type = PNG_COLOR_TYPE_RGB_ALPHA;
+		}
+		bit_depth = 8;
+	}
+
+	if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS))
+		png_set_tRNS_to_alpha(png_ptr);
 
 	if (color_type == PNG_COLOR_TYPE_PALETTE) {
 		png_set_palette_to_rgb(png_ptr);
 		png_set_filler(png_ptr, 0xFF, PNG_FILLER_AFTER);
 	}
 
-	if (color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8)
-		png_set_expand_gray_1_2_4_to_8(png_ptr);
-
-	if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS))
-		png_set_tRNS_to_alpha(png_ptr);
-
 	if (bit_depth < 8)
 		png_set_packing(png_ptr);
+
+	if (bit_depth == 8 && color_type == PNG_COLOR_TYPE_RGB)
+		png_set_filler(png_ptr, 0xFF, PNG_FILLER_AFTER);
 
 	png_read_update_info(png_ptr, info_ptr);
 
