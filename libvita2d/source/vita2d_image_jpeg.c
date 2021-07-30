@@ -6,23 +6,14 @@
 #include <jpeglib.h>
 #include "vita2d.h"
 
+// Following official documentation max width or height of the texture is 4096
+#define MAX_TEXTURE 4096
+
 static vita2d_texture *_vita2d_load_JPEG_generic(struct jpeg_decompress_struct *jinfo, struct jpeg_error_mgr *jerr)
 {
-	float downScaleWidth = (float)jinfo->image_width / 4096;
-	float downScaleHeight = (float)jinfo->image_height / 4096;
-	float downScale = (downScaleWidth >= downScaleHeight) ? downScaleWidth : downScaleHeight;
-
-	if (downScale <= 1.f) {
-		jinfo->scale_denom = 1;
-	} else if (downScale <= 2.f) {
-		jinfo->scale_denom = 2;
-	} else if (downScale <= 4.f) {
-		jinfo->scale_denom = 4;
-	} else if (downScale <= 8.f) {
-		jinfo->scale_denom = 8;
-	} else {
-		return NULL;
-	}
+	unsigned int longer = jinfo->image_width > jinfo->image_height ? jinfo->image_width : jinfo->image_height;
+	float downScale = (float)longer / (float)MAX_TEXTURE;
+	jinfo->scale_denom = ceil(downScale);
 
 	jpeg_start_decompress(jinfo);
 
