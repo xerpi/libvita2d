@@ -2,25 +2,44 @@
 #include <math.h>
 #include <string.h>
 
+unsigned int get_aligned_size(SceKernelMemBlockType type, unsigned int size)
+{
+	switch (type) {
+	case SCE_KERNEL_MEMBLOCK_TYPE_USER_CDRAM_RW:
+		return ALIGN(size, 256*1024);
+	case SCE_KERNEL_MEMBLOCK_TYPE_USER_MAIN_PHYCONT_NC_RW:
+	case SCE_KERNEL_MEMBLOCK_TYPE_USER_MAIN_PHYCONT_RW:
+		return ALIGN(size, 1024*1024);
+	default:
+		return ALIGN(size, 4*1024);
+	}
+}
+
 void *gpu_alloc(SceKernelMemBlockType type, unsigned int size, unsigned int alignment, unsigned int attribs, SceUID *uid)
 {
 	void *mem;
+	unsigned int aligned_size = get_aligned_size(type, size);
 
-	if (type == SCE_KERNEL_MEMBLOCK_TYPE_USER_CDRAM_RW) {
-		size = ALIGN(size, 256*1024);
-	} else {
-		size = ALIGN(size, 4*1024);
+	*uid = sceKernelAllocMemBlock("gpu_mem", type, aligned_size, NULL);
+	
+	// Fallbacking to other mem types if out of mem
+	if (*uid < 0) {
+		type = type == SCE_KERNEL_MEMBLOCK_TYPE_USER_CDRAM_RW ? SCE_KERNEL_MEMBLOCK_TYPE_USER_RW : SCE_KERNEL_MEMBLOCK_TYPE_USER_CDRAM_RW;
+		aligned_size = get_aligned_size(type, size);
+		*uid = sceKernelAllocMemBlock("gpu_mem", type, aligned_size, NULL);
+		if (*uid < 0) {
+			type = SCE_KERNEL_MEMBLOCK_TYPE_USER_MAIN_PHYCONT_RW;
+			aligned_size = get_aligned_size(type, size);
+			*uid = sceKernelAllocMemBlock("gpu_mem", type, aligned_size, NULL);
+			if (*uid < 0)
+				return NULL;
+		}
 	}
-
-	*uid = sceKernelAllocMemBlock("gpu_mem", type, size, NULL);
-
-	if (*uid < 0)
-		return NULL;
 
 	if (sceKernelGetMemBlockBase(*uid, &mem) < 0)
 		return NULL;
 
-	if (sceGxmMapMemory(mem, size, attribs) < 0)
+	if (sceGxmMapMemory(mem, aligned_size, attribs) < 0)
 		return NULL;
 
 	return mem;
