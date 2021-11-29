@@ -1,0 +1,18 @@
+language: c
+sudo: false
+
+script:
+    - cd $TRAVIS_BUILD_DIR
+    - curl https://api.github.com/repos/vitasdk/autobuilds/releases | grep browser_download_url | grep linux | head -n 1 | cut -d '"' -f 4 | xargs curl -L | tar xj
+    - export VITASDK=$PWD/vitasdk
+    - export PATH=$VITASDK/bin:$PATH
+    - curl -sL https://github.com/vitasdk/vdpm/raw/master/vdpm -o vdpm
+    - chmod +x vdpm
+    - curl -L https://github.com/vitasdk/vdpm/raw/master/include/install-packages.sh -o install-packages.sh
+    - sed -i "s/\.\.\///" install-packages.sh
+    - curl -L https://github.com/vitasdk/vdpm/raw/master/install-all.sh | sed -e "s/include\///" | bash > /dev/null
+    - rm vdpm
+    - mkdir build
+    - cd build
+    - cmake ..
+    - make

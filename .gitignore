@@ -2,3 +2,11 @@
 *.o
 *.elf
 *.velf
+
+#Mac
+.DS_Store
+
+#CLion
+cmake-build-debug
+cmake-build-release
+.idea

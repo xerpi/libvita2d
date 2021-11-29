@@ -281,7 +281,7 @@ static int atlas_add_glyph(vita2d_pvf *font, ScePvfFontId font_handle, unsigned 
 }
 
 int generic_pvf_draw_text(vita2d_pvf *font, int draw, int *height,
-			  int x, int y, float linespace, unsigned int color, float scale,
+			  int x, int y, float line_space, float letter_spacing, unsigned int color, float scale,
 			  const char *text)
 {
 	sceKernelLockLwMutex(&font->mutex, 1, NULL);
@@ -306,7 +306,7 @@ int generic_pvf_draw_text(vita2d_pvf *font, int draw, int *height,
 			if (pen_x > max_x)
 				max_x = pen_x;
 			pen_x = start_x;
-			pen_y += font->vsize * scale;
+            pen_y += font->vsize * scale + line_space;
 			continue;
 		}
 
@@ -340,6 +340,7 @@ int generic_pvf_draw_text(vita2d_pvf *font, int draw, int *height,
 		}
 
 		pen_x += (data.advance_x >> 6) * scale;
+        pen_x += letter_spacing;
 		old_character = character;
 	}
 
@@ -358,7 +359,7 @@ int vita2d_pvf_draw_text(vita2d_pvf *font, int x, int y,
 			 unsigned int color, float scale,
 			 const char *text)
 {
-	return generic_pvf_draw_text(font, 1, NULL, x, y, 0.0f, color, scale, text);
+	return generic_pvf_draw_text(font, 1, NULL, x, y, 0.0f, 0.0f, color, scale, text);
 }
 
 int vita2d_pvf_draw_textf(vita2d_pvf *font, int x, int y,
@@ -373,14 +374,14 @@ int vita2d_pvf_draw_textf(vita2d_pvf *font, int x, int y,
 	return vita2d_pvf_draw_text(font, x, y, color, scale, buf);
 }
 
-int vita2d_pvf_draw_text_ls(vita2d_pvf *font, int x, int y, float linespace,
+int vita2d_pvf_draw_text_advanced(vita2d_pvf *font, int x, int y, float line_space, float letter_spacing,
 			 unsigned int color, float scale,
 			 const char *text)
 {
-	return generic_pvf_draw_text(font, 1, NULL, x, y, linespace, color, scale, text);
+	return generic_pvf_draw_text(font, 1, NULL, x, y, line_space, letter_spacing, color, scale, text);
 }
 
-int vita2d_pvf_draw_textf_ls(vita2d_pvf *font, int x, int y, float linespace,
+int vita2d_pvf_draw_textf_advanced(vita2d_pvf *font, int x, int y, float line_space, float letter_spacing,
 			  unsigned int color, float scale,
 			  const char *text, ...)
 {
@@ -389,14 +390,14 @@ int vita2d_pvf_draw_textf_ls(vita2d_pvf *font, int x, int y, float linespace,
 	va_start(argptr, text);
 	vsnprintf(buf, sizeof(buf), text, argptr);
 	va_end(argptr);
-	return vita2d_pvf_draw_text_ls(font, x, y, linespace, color, scale, buf);
+	return vita2d_pvf_draw_text_advanced(font, x, y, line_space, letter_spacing, color, scale, buf);
 }
 
 void vita2d_pvf_text_dimensions(vita2d_pvf *font, float scale,
 				const char *text, int *width, int *height)
 {
 	int w;
-	w = generic_pvf_draw_text(font, 0, height, 0.0f, 0, 0, 0, scale, text);
+	w = generic_pvf_draw_text(font, 0, height, 0.0f, 0.0f, 0, 0, 0, scale, text);
 
 	if (width)
 		*width = w;
