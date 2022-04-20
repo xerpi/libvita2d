@@ -2,7 +2,7 @@
 #include <math.h>
 #include <string.h>
 
-unsigned int get_aligned_size(SceKernelMemBlockType type, unsigned int size)
+unsigned int get_aligned_size(unsigned int type, unsigned int size)
 {
 	switch (type) {
 	case SCE_KERNEL_MEMBLOCK_TYPE_USER_CDRAM_RW:
@@ -15,7 +15,7 @@ unsigned int get_aligned_size(SceKernelMemBlockType type, unsigned int size)
 	}
 }
 
-void *gpu_alloc(SceKernelMemBlockType type, unsigned int size, unsigned int alignment, unsigned int attribs, SceUID *uid)
+void *gpu_alloc(unsigned int type, unsigned int size, unsigned int alignment, unsigned int attribs, SceUID *uid)
 {
 	void *mem;
 	unsigned int aligned_size = get_aligned_size(type, size);

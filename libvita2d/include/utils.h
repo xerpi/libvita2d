@@ -14,7 +14,7 @@
 int utf8_to_ucs2(const char *utf8, unsigned int *character);
 
 /* GPU utils */
-void *gpu_alloc(SceKernelMemBlockType type, unsigned int size, unsigned int alignment, unsigned int attribs, SceUID *uid);
+void *gpu_alloc(unsigned int type, unsigned int size, unsigned int alignment, unsigned int attribs, SceUID *uid);
 void gpu_free(SceUID uid);
 void *vertex_usse_alloc(unsigned int size, SceUID *uid, unsigned int *usse_offset);
 void vertex_usse_free(SceUID uid);
