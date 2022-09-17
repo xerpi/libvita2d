@@ -105,7 +105,15 @@ vita2d_texture *vita2d_create_empty_texture(unsigned int w, unsigned int h);
 vita2d_texture *vita2d_create_empty_texture_format(unsigned int w, unsigned int h, SceGxmTextureFormat format);
 vita2d_texture *vita2d_create_empty_texture_rendertarget(unsigned int w, unsigned int h, SceGxmTextureFormat format);
 
+// Mark texture for deletion; will be deleted at next vita2d_swap_buffers() or
+// when vita2d_gc_textures() is called (to avoid GPU crashes when deleting
+// textures still required by the GPU to finish rendering the current frame)
 void vita2d_free_texture(vita2d_texture *texture);
+
+// This will be called automatically by vita2d_swap_buffers(), but you can call
+// it earlier in case you allocate/deallocate many textures in a single frame;
+// returns the number of texture objects freed
+int vita2d_gc_textures();
 
 unsigned int vita2d_texture_get_width(const vita2d_texture *texture);
 unsigned int vita2d_texture_get_height(const vita2d_texture *texture);

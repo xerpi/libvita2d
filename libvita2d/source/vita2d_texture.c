@@ -197,7 +197,7 @@ vita2d_texture * vita2d_create_empty_texture_rendertarget(unsigned int w, unsign
 	return _vita2d_create_empty_texture_format_advanced(w, h, format, 1);
 }
 
-void vita2d_free_texture(vita2d_texture *texture)
+static void _vita2d_free_texture_internal(vita2d_texture *texture)
 {
 	if (texture) {
 		if (texture->gxm_rtgt) {
@@ -212,6 +212,47 @@ void vita2d_free_texture(vita2d_texture *texture)
 		gpu_free(texture->data_UID);
 		free(texture);
 	}
+}
+
+typedef struct texture_freelist_entry texture_freelist_entry;
+
+// TODO: If we store the "next" pointer in vita2d_texture, we can
+// use it for an intrusive linked list and don't need to malloc
+struct texture_freelist_entry {
+	vita2d_texture *texture;
+	texture_freelist_entry *next;
+};
+
+// Note: Operations on _texture_freelist are not threadsafe at the moment
+static texture_freelist_entry *_texture_freelist = NULL;
+
+void vita2d_free_texture(vita2d_texture *texture)
+{
+	texture_freelist_entry *entry = malloc(sizeof(texture_freelist_entry));
+	entry->texture = texture;
+	entry->next = _texture_freelist;
+	_texture_freelist = entry;
+}
+
+int vita2d_gc_textures()
+{
+	if (_texture_freelist == NULL) {
+		// Nothing to do, exit early without waiting
+		return 0;
+	}
+
+	// Need to free textures, wait for GPU first
+	vita2d_wait_rendering_done();
+
+	int res = 0;
+	while (_texture_freelist != NULL) {
+		texture_freelist_entry *entry = _texture_freelist;
+		_texture_freelist = entry->next;
+		_vita2d_free_texture_internal(entry->texture);
+		free(entry);
+		++res;
+	}
+	return res;
 }
 
 unsigned int vita2d_texture_get_width(const vita2d_texture *texture)
